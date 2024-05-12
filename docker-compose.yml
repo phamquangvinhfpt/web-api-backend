@@ -1,0 +1,13 @@
+name: core
+services:
+  core:
+    profiles: ["backend"]
+    container_name: web-api
+    image: web-api
+    build:
+      context: .
+      dockerfile: Core/Dockerfile
+  mssql:
+    profiles: ["backend"]
+    container_name: mssql
+    image: mcr.microsoft.com/mssql/server:latest
