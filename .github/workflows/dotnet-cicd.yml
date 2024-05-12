@@ -47,7 +47,7 @@ jobs:
         name: Build GEO Web API Image
         working-directory: ./
         run: |
-          dotnet publish -c Release -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
+          dotnet publish -c Release ./Core/Core.csproj -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
           docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi --all-tags
   deploy:
     name: Deploy
