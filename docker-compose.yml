@@ -1,0 +1,15 @@
+name: core
+services:
+  core:
+    profiles: ["backend"]
+    container_name: web-api
+    image: ${DOCKER_REGISTRY-}core
+    build:
+      context: .
+      dockerfile: Core/Dockerfile
+  #   networks:
+  #     - api
+  # mssql:
+  #   profiles: ["backend"]
+  #   container_name: mssql
+  #   image: mcr.microsoft.com/mssql/server:latest

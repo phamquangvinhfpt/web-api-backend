@@ -1,0 +1,78 @@
+name: dotnet-cicd
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      push_to_docker:
+        type: boolean
+        description: Docker Push
+      deploy_to_test:
+        type: boolean
+        description: Deploy to Test
+      deploy_to_prod:
+        type: boolean
+        description: Deploy to Prod
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore ./Core/Core.csproj
+    - name: Build
+      run: dotnet build --no-restore ./Core/Core.csproj
+    - name: Test
+      run: dotnet test --no-build --verbosity normal ./Core/Core.csproj
+  docker:
+    name: Docker
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - if: github.event.inputs.push_to_docker == 'true'
+        name: Build GEO Web API Image
+        working-directory: ./
+        run: |
+          dotnet publish -c Release -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
+          docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi --all-tags
+  deploy:
+    name: Deploy
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - if: github.event.inputs.deploy_to_test == 'true'
+        name: Deploy to test
+        uses: easingthemes/ssh-deploy@v5.0.3
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: "-rlgoDzvc -i"
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
+          SCRIPT_AFTER: |
+            docker compose pull dotnet-webapi && cd ${{ secrets.WORK_DIR_TEST }} && docker compose up -d core
+            echo $RSYNC_STDOUT
+      - if: github.event.inputs.deploy_to_prod == 'true'
+        name: Deploy to prod
+        uses: easingthemes/ssh-deploy@v5.0.3
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: "-rlgoDzvc -i"
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
+          SCRIPT_AFTER: |
+            docker compose pull dotnet-webapi && cd ${{ secrets.WORK_DIR_PROD }} && docker compose up -d core
+            echo $RSYNC_STDOUT

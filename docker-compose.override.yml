@@ -1,0 +1,45 @@
+name: core
+services:
+  core:
+    # networks:
+    #   - api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - DatabaseSettings__ConnectionString=Server=mssql;Database=prn231;User=sa;Password=123Pa$$word!;MultipleActiveResultSets=true;Encrypt=false
+      - HangfireSettings__Storage__ConnectionString=Server=mssql;Database=prn231;User=sa;Password=123Pa$$word!;MultipleActiveResultSets=true;Encrypt=false
+      - DatabaseSettings__DBProvider=mssql
+      - HangfireSettings__Storage__StorageProvider=mssql
+    ports:
+      - 8080:8080
+      - 8081:8081
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+    # depends_on:
+    #   mssql:
+    #     condition: service_healthy
+    restart: on-failure
+#   mssql:
+#     environment:
+#       - SA_PASSWORD=123Pa$$word!
+#       - ACCEPT_EULA=Y
+#     ports:
+#       - 1434:1433
+#     volumes:
+#       - mssql-data:/data/db
+#     networks:
+#       - api
+#     healthcheck:
+#       test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -Q
+#         "SELECT 1" || exit 1
+#       interval: 10s
+#       timeout: 3s
+#       retries: 10
+#       start_period: 10s
+# volumes:
+#   mssql-data:
+# networks:
+#   api:
+#     name:  api
