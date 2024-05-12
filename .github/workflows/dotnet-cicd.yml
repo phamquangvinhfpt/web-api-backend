@@ -47,8 +47,8 @@ jobs:
         name: Build GEO Web API Image
         working-directory: ./
         run: |
-          dotnet publish -c Release ./Core/Core.csproj -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/dotnet-webapi -p:RuntimeIdentifier=linux-x64
-          docker push ${{ secrets.DOCKER_USERNAME }}/dotnet-webapi --all-tags
+          dotnet publish -c Release ./Core/Core.csproj -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/web-api -p:RuntimeIdentifier=linux-x64
+          docker push ${{ secrets.DOCKER_USERNAME }}/web-api --all-tags
   deploy:
     name: Deploy
     needs: docker
@@ -63,7 +63,7 @@ jobs:
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
           SCRIPT_AFTER: |
-            docker compose pull dotnet-webapi && cd ${{ secrets.WORK_DIR_TEST }} && docker compose up -d core
+            docker compose pull web-api && cd ${{ secrets.WORK_DIR_TEST }} && docker compose up -d core
             echo $RSYNC_STDOUT
       - if: github.event.inputs.deploy_to_prod == 'true'
         name: Deploy to prod
@@ -74,5 +74,5 @@ jobs:
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
           SCRIPT_AFTER: |
-            docker compose pull dotnet-webapi && cd ${{ secrets.WORK_DIR_PROD }} && docker compose up -d core
+            docker compose pull web-api && cd ${{ secrets.WORK_DIR_PROD }} && docker compose up -d core
             echo $RSYNC_STDOUT
