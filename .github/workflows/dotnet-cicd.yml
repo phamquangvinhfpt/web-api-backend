@@ -47,7 +47,7 @@ jobs:
         name: Build Web API Image
         working-directory: ./
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/web-api -f ./Core/Dockerfile ./Core
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/web-api -f ./Core/Dockerfile .
           dotnet publish -c Release ./Core/Core.csproj -p:ContainerImageName=${{ secrets.DOCKER_USERNAME }}/web-api -p:RuntimeIdentifier=linux-x64
           docker push ${{ secrets.DOCKER_USERNAME }}/web-api --all-tags
   deploy:
