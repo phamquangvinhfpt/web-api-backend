@@ -17,18 +17,21 @@ namespace BussinessObject.Data
         }
 
         public DbSet<AppUser> Users { get; set; }
-        public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<Clinic> Clinics { get; set; }
         public DbSet<ClinicOpeningHour> ClinicOpeningHours { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<DentalRecord> DentalRecords { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseNpgsql(ConnectionString());
+            if (!optionsBuilder.IsConfigured)
+            {
+                base.OnConfiguring(optionsBuilder);
+                optionsBuilder.UseSqlServer(ConnectionString());
+            }
         }
         public string ConnectionString()
         {
@@ -52,12 +55,6 @@ namespace BussinessObject.Data
             {
                 entity.ToTable(name: "Roles");
             });
-
-            builder.Entity<UserProfile>()
-                .HasOne(up => up.User)
-                .WithOne()
-                .HasForeignKey<UserProfile>(up => up.UserID)
-                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Clinic>()
                 .HasOne(c => c.Owner)
