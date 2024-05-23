@@ -106,6 +106,8 @@ try
         options.Password.RequireNonAlphanumeric = true;
         options.Password.RequiredLength = 8;
         options.User.RequireUniqueEmail = true;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.MaxFailedAccessAttempts = 3;
     })
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
@@ -161,6 +163,12 @@ try
     var app = builder.Build();
     using (var scope = app.Services.CreateScope())
     {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<AppDbContext>();
+        // If the database is not created, create it
+        context.Database.EnsureCreated();
+        // context.Database.Migrate();
+
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
         var roleNames = Enum.GetNames(typeof(Roles));

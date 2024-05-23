@@ -43,7 +43,7 @@ namespace Core.Repository
         //Register User
         public async Task<ResponseManager> RegisterUser(RegisterUser model)
         {
-        
+
             var identityUser = new AppUser
             {
                 Email = model.Email,
@@ -73,7 +73,7 @@ namespace Core.Repository
                 {
                     ToEmail = identityUser.Email,
                     Subject = "Confirm your email",
-                    Body = $"<h1>Welcome to our website</h1>" + $"<p>Hi {identityUser.UserName} !, Please confirm your email by <a href='{url}'>Clicking here</a></p><br><strong>Email Confirmation token for ID '"+confirmUser.Id+"' : <code>"+validEmailToken + "</code></strong>",
+                    Body = $"<h1>Welcome to our website</h1>" + $"<p>Hi {identityUser.UserName} !, Please confirm your email by <a href='{url}'>Clicking here</a></p><br><strong>Email Confirmation token for ID '" + confirmUser.Id + "' : <code>" + validEmailToken + "</code></strong>",
                 };
 
                 await _mailService.SendEmailAsync(mailContent);
@@ -83,7 +83,7 @@ namespace Core.Repository
                     IsSuccess = true,
                     Message = "User created successfully! Please confirm the your Email!",
                 };
-            } 
+            }
 
             return new ResponseManager
             {
@@ -108,14 +108,37 @@ namespace Core.Repository
             }
             else
             {
-                var result = await _userManager.CheckPasswordAsync(user, model.Password);
-                if (!result)
+                // Account Confirmation Check
+                if (!user.EmailConfirmed)
                 {
                     return new ResponseManager
                     {
-                        Message = "Invalid password",
+                        Message = "Email not confirmed yet! Please confirm your email!",
                         IsSuccess = false,
                     };
+                }
+
+                var result = await _userManager.CheckPasswordAsync(user, model.Password);
+                if (!result)
+                {
+                    if (await _userManager.IsLockedOutAsync(user))
+                    {
+                        return new ResponseManager
+                        {
+                            Message = "User account locked out",
+                            IsSuccess = false,
+                        };
+                    }
+                    else
+                    {
+                        // Increase the failed login attempt count
+                        await _userManager.AccessFailedAsync(user);
+                        return new ResponseManager
+                        {
+                            Message = "Invalid password, Please try again!",
+                            IsSuccess = false,
+                        };
+                    }
                 }
 
                 var userRole = new List<string>(await _userManager.GetRolesAsync(user));
@@ -123,7 +146,7 @@ namespace Core.Repository
                 var Token = await GenerateToken(user);
 
                 return new ResponseManager
-                {   
+                {
                     Message = Token,
                     IsSuccess = true,
                 };
@@ -189,7 +212,7 @@ namespace Core.Repository
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
             string pass = "Tester@123";
             string url = $"{_config["AppUrl"]}/api/Auth/ResetPassword?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
-            
+
             var mailContent = new MailRequest
             {
                 ToEmail = email,
