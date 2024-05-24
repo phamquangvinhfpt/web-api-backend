@@ -7,10 +7,6 @@ services:
     build:
       context: .
       dockerfile: Core/Dockerfile
-    # depends_on:
-    #   - mssql
-  #   networks:
-  #     - api
   mssql:
     profiles: ["backend"]
     container_name: mssql
