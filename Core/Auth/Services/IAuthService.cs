@@ -14,18 +14,12 @@ namespace Core.Services
     {
         Task<ResponseManager> RegisterUser(RegisterUser model);
 
-        Task<ResponseManager> LoginUser(AuthUser model);
+        Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile);
 
         Task<ResponseManager> ConfirmEmail(Guid userId, string token);
 
         Task<ResponseManager> ForgetPassword(string email);
 
         Task<ResponseManager> ResetPassword(ResetPasswordModel model);
-
-        Task<TokenModel> GenerateToken(AppUser user);
-
-        Task<ResponseManager> UpdateRefreshToken(RefreshToken token);
-
-        Task<RefreshToken> GetRefreshToken(string token);
     }
 }

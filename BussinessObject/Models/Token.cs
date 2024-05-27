@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BussinessObject.Models
 {
-    public class RefreshToken
+    public class Token
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -15,8 +15,11 @@ namespace BussinessObject.Models
         public Guid UserId { get; set; }
         [ForeignKey(nameof(UserId))]
         public AppUser User { get; set; }
-        public string Token { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshTokenHash { get; set; }
         public string JwtId { get; set; }
+        public string DeviceId { get; set; }
+        public bool? IsMobile { get; set; }
         public bool IsUsed { get; set; }
         public bool IsRevoked { get; set; }
         public DateTime IssuedAt { get; set; }

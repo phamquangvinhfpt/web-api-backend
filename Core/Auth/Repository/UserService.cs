@@ -78,7 +78,7 @@ namespace Core.Repository
                 var identityUser = new AppUser
                 {
                     Email = model.Email,
-                    UserName = model.Username,
+                    UserName = model?.Username,
                     FullName = model.FullName,
                     NormalizedUserName = model.Username.Normalize(),
                     NormalizedEmail = model.Email.Normalize(),
@@ -228,7 +228,7 @@ namespace Core.Repository
             return _context.Users.Any(e => e.Id == id);
         }
 
-        //Additional Creating Password Hash
+        // Additional Creating Password Hash
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             if (password == null) throw new ArgumentNullException("password");
@@ -239,48 +239,6 @@ namespace Core.Repository
                 passwordSalt = hmac.Key;
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
-        }
-
-        // AddRefreshToken
-        public async Task<ResponseManager> AddRefreshToken(RefreshToken token)
-        {
-            if (token == null)
-                throw new NullReferenceException("Token is NULL");
-
-            var existingToken = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.UserId == token.UserId);
-
-            if (existingToken != null)
-            {
-                _context.RefreshTokens.Remove(existingToken);
-            }
-
-            await _context.RefreshTokens.AddAsync(token);
-            await _context.SaveChangesAsync();
-
-            return new ResponseManager
-            {
-                IsSuccess = true,
-                Message = token,
-            };
-        }
-
-        // GetRefreshToken
-        public async Task<RefreshToken> GetRefreshToken(string token)
-        {
-            return await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == token);
-        }
-
-        // UpdateRefreshToken
-        public async Task<ResponseManager> UpdateRefreshToken(RefreshToken token)
-        {
-            _context.RefreshTokens.Update(token);
-            await _context.SaveChangesAsync();
-
-            return new ResponseManager
-            {
-                IsSuccess = true,
-                Message = token,
-            };
         }
     }
 }

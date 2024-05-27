@@ -6,12 +6,18 @@ using System.Threading.Tasks;
 using BussinessObject.Data;
 using BussinessObject.Models;
 using Core.Auth;
+using Core.Auth.Repository;
+using Core.Auth.Services;
 using Core.Enums;
 using Core.Infrastructure.Exceptions;
+using Core.Infrastructure.Hangfire;
+using Core.Infrastructure.Middleware;
 using Core.Infrastructure.Serilog;
 using Core.Properties;
 using Core.Repository;
 using Core.Services;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -85,6 +91,21 @@ namespace Core.Infrastructure
                     b => b.MigrationsAssembly("Core"));
             });
 
+            services.AddHangfire(configuration => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(config.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
+            {
+                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                QueuePollInterval = TimeSpan.Zero,
+                UseRecommendedIsolationLevel = true,
+                DisableGlobalLocks = true
+            }));
+
+            services.AddHangfireServer();
+
             services.AddIdentity<AppUser, IdentityRole<Guid>>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -104,7 +125,7 @@ namespace Core.Infrastructure
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = ".NET-Core-UserManagement-API-8.0",
+                    Title = ".NET-Core-DrDentist-API-8.0",
                     Version = "v1",
                 });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -140,7 +161,7 @@ namespace Core.Infrastructure
                     builder => builder
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .WithOrigins("http://localhost:5151", "https://localhost:7124", "https://drdentist.me")
+                        .WithOrigins("http://localhost:5151", "https://localhost:7124", "https://drdentist.me", "http://localhost:5000")
                         .AllowCredentials());
             });
 
@@ -151,7 +172,9 @@ namespace Core.Infrastructure
 
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITokenService, TokenService>();
             services.AddTransient<IMailService, MailService>();
+            services.AddScoped<TokenCleanupJob>();
 
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -162,6 +185,9 @@ namespace Core.Infrastructure
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
         {
             app.UseHttpsRedirection();
+            app.UseHangfireDashboard();
+            RecurringJob.AddOrUpdate<TokenCleanupJob>("CleanupTokens", job => job.CleanupTokens(), Cron.Daily);
+            app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");
             app.UseExceptionHandler();

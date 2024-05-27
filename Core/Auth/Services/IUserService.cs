@@ -20,12 +20,6 @@ namespace Core.Services
 
         Task<ResponseManager> DeleteUser(Guid id);
 
-        Task<ResponseManager> AddRefreshToken(RefreshToken token);
-
-        Task<RefreshToken> GetRefreshToken(string token);
-
-        Task<ResponseManager> UpdateRefreshToken(RefreshToken token);
-
         public bool IsExist(Guid id);
     }
 }

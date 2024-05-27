@@ -1,20 +1,5 @@
-using System.Text;
-using BussinessObject.Data;
-using BussinessObject.Models;
-using Core.Auth;
-using Core.Enums;
 using Core.Infrastructure;
-using Core.Infrastructure.Exceptions;
-using Core.Infrastructure.Serilog;
-using Core.Properties;
-using Core.Repository;
-using Core.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Hangfire;
 using Serilog;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()

@@ -5,8 +5,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BussinessObject.Models;
+using Core.Auth.Services;
 using Core.Helpers;
 using Core.Models;
 using Core.Models.AuthModel;
@@ -26,23 +28,46 @@ namespace Core.Repository
         private RoleManager<IdentityRole<Guid>> _roleManager;
         private IMailService _mailService;
         private readonly IUserService _useService;
+        private readonly ITokenService _tokenService;
 
         public AuthService(IConfiguration config,
                             UserManager<AppUser> userManager,
                             IMailService mailService,
                             IUserService userService,
+                            ITokenService tokenService,
                             RoleManager<IdentityRole<Guid>> roleManager)
         {
             _config = config;
             _userManager = userManager;
             _roleManager = roleManager;
             _mailService = mailService;
+            _tokenService = tokenService;
             _useService = userService;
         }
 
         //Register User
         public async Task<ResponseManager> RegisterUser(RegisterUser model)
         {
+            //Regex for Password
+            string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$";
+            if (!Regex.IsMatch(model.Password, pattern))
+            {
+                return new ResponseManager
+                {
+                    IsSuccess = false,
+                    Message = "Password must contain at least one uppercase, one lowercase, one digit, one special character and minimum 8 characters",
+                };
+            }
+
+            // Password and Confirm Password Check
+            if (model.Password != model.ConfirmPassword)
+            {
+                return new ResponseManager
+                {
+                    IsSuccess = false,
+                    Message = "Password doesn't match its confirmation",
+                };
+            }
 
             var identityUser = new AppUser
             {
@@ -94,15 +119,15 @@ namespace Core.Repository
         }
 
         //Login User
-        public async Task<ResponseManager> LoginUser(AuthUser model)
+        public async Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            if (user.Email != model.Email || user.UserName != model.UserName)
+            if (user == null)
             {
                 return new ResponseManager
                 {
-                    Message = "There is no user with that Email address / Username! ",
+                    Message = "There is no user with that Email address! ",
                     IsSuccess = false,
                 };
             }
@@ -143,7 +168,7 @@ namespace Core.Repository
 
                 var userRole = new List<string>(await _userManager.GetRolesAsync(user));
                 //Generate Token JWT
-                var Token = await GenerateToken(user);
+                var Token = await _tokenService.GenerateToken(user, deviceId, isMobile);
 
                 return new ResponseManager
                 {
@@ -266,75 +291,6 @@ namespace Core.Repository
                 IsSuccess = false,
                 Errors = result.Errors.Select(e => e.Description),
             };
-        }
-
-        //Token Genereator
-        public async Task<TokenModel> GenerateToken(AppUser user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            var userRoles = roles.Select(r => new Claim(ClaimTypes.Role, r)).ToArray();
-
-            var userClaims = await _userManager.GetClaimsAsync(user).ConfigureAwait(false);
-
-            var roleClaims = await _userManager.GetClaimsAsync(user).ConfigureAwait(false);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.GivenName, user.FullName),
-            }.Union(userClaims).Union(roleClaims).Union(userRoles);
-            var tokenClaims = new JwtSecurityToken(_config["Jwt:Issuer"],
-                _config["Jwt:Audience"],
-                claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: credentials);
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenClaims);
-            var refreshToken = GenerateRefreshToken();
-            var refreshTokenEntity = new RefreshToken
-            {
-                UserId = user.Id,
-                JwtId = tokenClaims.Id,
-                User = user,
-                Token = refreshToken,
-                IsUsed = false,
-                IsRevoked = false,
-                IssuedAt = DateTime.Now,
-                ExpiredAt = DateTime.Now.AddDays(1),
-            };
-            await _useService.AddRefreshToken(refreshTokenEntity);
-            return new TokenModel
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-            };
-        }
-
-        private string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[32];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
-        }
-
-        // GetRefreshToken
-        public async Task<RefreshToken> GetRefreshToken(string token)
-        {
-            return await _useService.GetRefreshToken(token);
-        }
-
-        // UpdateRefreshToken
-        public async Task<ResponseManager> UpdateRefreshToken(RefreshToken token)
-        {
-            return await _useService.UpdateRefreshToken(token);
         }
     }
 }

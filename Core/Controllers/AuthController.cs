@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using BussinessObject.Models;
-using Core.Helpers;
+using Core.Auth.Services;
 using Core.Models;
 using Core.Models.AuthModel;
 using Core.Models.AuthModels;
@@ -28,14 +26,16 @@ namespace Core.Controllers
         private readonly IMailService _mailService;
         private readonly IConfiguration _config;
         private readonly IUserService _user;
+        private readonly ITokenService _token;
 
-        public AuthController(IAuthService AuthService, IMapper mapper, IMailService mailService, IConfiguration configuration, IUserService userService)
+        public AuthController(IAuthService AuthService, IMapper mapper, IMailService mailService, IConfiguration configuration, IUserService userService, ITokenService tokenService)
         {
             _auth = AuthService;
             _mapper = mapper;
             _mailService = mailService;
             _config = configuration;
             _user = userService;
+            _token = tokenService;
         }
 
         // api/auth/Register
@@ -61,7 +61,9 @@ namespace Core.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _auth.LoginUser(model);
+                string deviceId = GetDeviceId(Request);
+                bool isMobile = IsMobile(Request);
+                var result = await _auth.LoginUser(model, deviceId, isMobile);
 
                 if (result.IsSuccess)
                 {
@@ -85,6 +87,8 @@ namespace Core.Controllers
         [HttpPost("RefreshToken")]
         public async Task<IActionResult> RefreshToken([FromBody] TokenModel model)
         {
+            var deviceId = GetDeviceId(Request);
+            bool isMobile = IsMobile(Request);
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKeyBytes = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
             var tokenValidateParam = new TokenValidationParameters
@@ -137,7 +141,7 @@ namespace Core.Controllers
                     }
 
                     // Check refreshToken exists in DB
-                    var refreshToken = await _auth.GetRefreshToken(model.RefreshToken);
+                    var refreshToken = await _token.GetRefreshToken(model.RefreshToken);
                     if (refreshToken == null)
                     {
                         return BadRequest(new ResponseManager
@@ -183,7 +187,7 @@ namespace Core.Controllers
 
                     // Update token in DB
                     var user = await _user.GetUserbyId(refreshToken.UserId);
-                    var token = await _auth.GenerateToken(user.Message as AppUser);
+                    var token = await _token.GenerateToken(user.Message as AppUser, deviceId, isMobile);
 
                     return Ok(new ResponseManager
                     {
@@ -266,6 +270,33 @@ namespace Core.Controllers
             }
 
             return BadRequest("Some properties are not valid");
+        }
+
+        [NonAction]
+        public string GetDeviceId(HttpRequest request)
+        {
+            var device = request.Headers["User-Agent"].ToString();
+            var ip = request.HttpContext.Connection.RemoteIpAddress.ToString();
+            // su dung Sha256Hash de ma hoa device va ip
+            var sha256 = SHA256.Create();
+            var deviceHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(device));
+            var ipHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(ip));
+            var deviceId = BitConverter.ToString(deviceHash).Replace("-", "") + BitConverter.ToString(ipHash).Replace("-", "");
+            return deviceId;
+        }
+
+        [NonAction]
+        public bool IsMobile(HttpRequest request)
+        {
+            string userAgent = request.Headers["User-Agent"];
+            if (userAgent.Contains("Mobile") || userAgent.Contains("iPhone") || userAgent.Contains("iPad") || userAgent.Contains("Android"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

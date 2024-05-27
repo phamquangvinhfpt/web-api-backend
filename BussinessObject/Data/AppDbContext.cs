@@ -23,7 +23,7 @@ namespace BussinessObject.Data
         public DbSet<DentalRecord> DentalRecords { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Token> Tokens { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
