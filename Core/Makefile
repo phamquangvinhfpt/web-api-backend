@@ -18,3 +18,7 @@ gw: # git docker workflow to push docker image to the repository based on the ma
 	@echo triggering github workflow to push docker image to container
 	@echo ensure that you have the gh-cli installed and authenticated.
 	gh workflow run dotnet-cicd -f push_to_docker=true
+deploy:
+	@echo "Deploying the project"
+	dotnet publish -c Release
+	gh workflow run dotnet-cicd -f deploy_to_test=true -f deploy_to_prod=true
