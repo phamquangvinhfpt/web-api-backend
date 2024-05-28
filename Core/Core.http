@@ -1,6 +1,50 @@
 @Core_HostAddress = http://localhost:5151
+@accessToken = 
 
 GET {{Core_HostAddress}}/weatherforecast/
 Accept: application/json
 
-###
+### Register
+POST {{Core_HostAddress}}/api/Auth/Register
+Content-Type: application/json
+
+{
+  "username": "string",
+  "fullName": "string",
+  "email": "user@example.com",
+  "password": "string",
+  "confirmPassword": "string",
+  "phoneNumber": "string",
+  "role": "string"
+}
+
+### Login
+POST {{Core_HostAddress}}/api/Auth/Authenticate
+Content-Type: application/json
+
+{
+  "email": "string",
+  "password": "string"
+}
+
+### Refresh Token
+POST {{Core_HostAddress}}/api/Auth/RefreshToken
+Content-Type: application/json
+
+{
+  "accessToken": "string",
+  "refreshToken": "string"
+}
+
+### Confirm Email (Change string to actual values)
+GET {{Core_HostAddress}}/api/Auth/ConfirmEmail?userId=string&token=string
+
+### Forgot Password
+POST {{Core_HostAddress}}/api/Auth/ForgetPassword?email=string
+
+### Reset Password
+POST {{Core_HostAddress}}/api/Auth/ResetPassword?Email=string&Token=string&NewPassword=string&ConfirmPassword=string
+
+### Get List of Users
+GET {{Core_HostAddress}}/api/User
+Authorization : Bearer {{ accessToken }}

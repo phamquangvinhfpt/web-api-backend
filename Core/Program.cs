@@ -1,5 +1,4 @@
 using Core.Infrastructure;
-using Hangfire;
 using Serilog;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()

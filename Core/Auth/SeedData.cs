@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
 namespace Core.Auth
@@ -14,12 +10,12 @@ namespace Core.Auth
         using (var scope = serviceProvider.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-            
+
             // Add permissions claims to SuperAdmin role
             var superAdminRole = new IdentityRole<Guid>("SuperAdmin");
             await EnsureRole(roleManager, superAdminRole.Name, Permissions.Users.SuperAdminView);
             await EnsureRole(roleManager, superAdminRole.Name, Permissions.Users.SuperAdminCreate);
-            
+
             var adminRole = new IdentityRole<Guid>("Admin");
             await EnsureRole(roleManager, adminRole.Name, Permissions.Users.View);
             await EnsureRole(roleManager, adminRole.Name, Permissions.Users.Create);
@@ -33,7 +29,6 @@ namespace Core.Auth
 
             var clientRole = new IdentityRole<Guid>("Client");
             await EnsureRole(roleManager, clientRole.Name, Permissions.Users.ViewById);
-            // Add other roles and permissions as required
         }
     }
 

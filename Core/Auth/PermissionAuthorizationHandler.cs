@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BussinessObject.Models;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;

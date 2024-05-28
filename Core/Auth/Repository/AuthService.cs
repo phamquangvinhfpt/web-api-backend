@@ -1,23 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using BussinessObject.Models;
 using Core.Auth.Services;
 using Core.Helpers;
 using Core.Models;
-using Core.Models.AuthModel;
 using Core.Models.AuthModels;
 using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Core.Repository
 {
@@ -179,7 +170,37 @@ namespace Core.Repository
 
         }
 
-        //ConfirmEmail
+        // Logout User
+        public async Task<ResponseManager> LogoutUser(string refreshtoken)
+        {
+            var tokenEntity = await _tokenService.GetRefreshToken(refreshtoken);
+            if (tokenEntity == null)
+            {
+                return new ResponseManager
+                {
+                    IsSuccess = false,
+                    Message = "Token not found",
+                };
+            }
+
+            var result = await _tokenService.RevokeToken(new List<Token> { tokenEntity });
+            if (result.IsSuccess)
+            {
+                return new ResponseManager
+                {
+                    IsSuccess = true,
+                    Message = "Token revoked successfully",
+                };
+            }
+
+            return new ResponseManager
+            {
+                IsSuccess = false,
+                Message = "Token not revoked",
+            };
+        }
+
+        // ConfirmEmail
         public async Task<ResponseManager> ConfirmEmail(Guid userId, string token)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
