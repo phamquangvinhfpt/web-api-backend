@@ -171,9 +171,9 @@ namespace Core.Repository
         }
 
         // Logout User
-        public async Task<ResponseManager> LogoutUser(string refreshtoken)
+        public async Task<ResponseManager> LogoutUser(string accessToken)
         {
-            var tokenEntity = await _tokenService.GetRefreshToken(refreshtoken);
+            var tokenEntity = await _tokenService.GetToken(accessToken);
             if (tokenEntity == null)
             {
                 return new ResponseManager

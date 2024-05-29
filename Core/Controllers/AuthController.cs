@@ -82,6 +82,20 @@ namespace Core.Controllers
             return BadRequest("Some properties are not valid");
         }
 
+        // api/auth/Logout
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var accessToken = Request.Headers["Authorization"].ToString();
+            var token = accessToken.Split(" ")[1];
+            var result = await _auth.LogoutUser(token);
+
+            if (result.IsSuccess)
+                return Ok(result);
+
+            return BadRequest(result);
+        }
+
         // api/auth/RefreshToken
         [HttpPost("RefreshToken")]
         public async Task<IActionResult> RefreshToken([FromBody] TokenModel model)

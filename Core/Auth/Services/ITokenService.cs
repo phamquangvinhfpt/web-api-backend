@@ -12,6 +12,8 @@ namespace Core.Auth.Services
 
         Task<ResponseManager> UpdateRefreshToken(Token token);
 
+        Task<Token> GetToken(string accessToken);
+
         Task<Token> GetRefreshToken(string token);
         Task<List<Token>> GetTokens(Guid userId);
         string GenerateRefreshToken();

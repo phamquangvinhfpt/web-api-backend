@@ -160,6 +160,12 @@ namespace Core.Auth.Repository
             };
         }
 
+        // GetToken
+        public async Task<Token> GetToken(string accessToken)
+        {
+            return await _context.Tokens.FirstOrDefaultAsync(x => x.AccessToken == accessToken);
+        }
+
         // RevokeToken
         public async Task<ResponseManager> RevokeToken(List<Token> tokens)
         {
