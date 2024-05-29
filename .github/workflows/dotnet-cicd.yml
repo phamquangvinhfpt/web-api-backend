@@ -64,7 +64,7 @@ jobs:
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
           SCRIPT_AFTER: |
-            cd ${{ secrets.WORK_DIR_TEST }} && docker compose pull test && docker compose up -d test
+            cd ${{ secrets.WORK_DIR_TEST }} && docker compose pull ${{ secrets.DOCKER_USERNAME }}/web-api && docker compose up -d test
             echo $RSYNC_STDOUT
       - if: github.event.inputs.deploy_to_prod == 'true'
         name: Deploy to prod
@@ -75,5 +75,5 @@ jobs:
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
           SCRIPT_AFTER: |
-            cd ${{ secrets.WORK_DIR_PROD }} && docker compose pull product && docker compose up -d product
+            cd ${{ secrets.WORK_DIR_PROD }} && docker compose pull ${{ secrets.DOCKER_USERNAME }}/web-api && docker compose up -d product
             echo $RSYNC_STDOUT
