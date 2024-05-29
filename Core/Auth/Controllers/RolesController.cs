@@ -9,7 +9,7 @@ namespace Core.Auth.Controllers
 {
     [Route("api")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = "SuperAdmin, Admin")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = "SuperAdmin")]
     public class RolesController : ControllerBase
     {
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
@@ -24,7 +24,7 @@ namespace Core.Auth.Controllers
         // /api/Roles
 
         [HttpGet("Roles")]
-        [Authorize(Permissions.Users.SuperAdminView)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> Index()
         {
             var roles = await _roleManager.Roles.ToListAsync();
@@ -38,7 +38,7 @@ namespace Core.Auth.Controllers
         // /api/Roles/{RoleName}
 
         [HttpPost("AddRole/Role")]
-        [Authorize(Permissions.Users.SuperAdminCreate)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> AddRole(string roleName)
         {
             if (roleName != null)
@@ -54,7 +54,7 @@ namespace Core.Auth.Controllers
 
         // /api/Roles/{RoleName}
         [HttpDelete("removeRole/role")]
-        [Authorize(Permissions.Users.Delete)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> RemoveRole(string roleName)
         {
             if (roleName != null)
@@ -71,7 +71,7 @@ namespace Core.Auth.Controllers
 
         // /api/userRoles/{id}
         [HttpGet("userRoles/userId")]
-        [Authorize(Permissions.Users.ViewById)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> GetUserRolebyId(Guid userId)
         {
             var existingUser = await _userManager.FindByIdAsync(userId.ToString());
@@ -87,7 +87,7 @@ namespace Core.Auth.Controllers
         // /api/AddUserRole/{RoleName}
 
         [HttpPost("AddUserRole/UserRole")]
-        [Authorize(Permissions.Users.Create)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> AddUserRole(Guid userId, string userRole)
         {
             var existingUser = await _userManager.FindByIdAsync(userId.ToString());
@@ -106,7 +106,7 @@ namespace Core.Auth.Controllers
 
         // /api/RemoveUserRole/{RoleName}
         [HttpDelete("RemoveUserRole/userRole")]
-        [Authorize(Permissions.Users.Edit)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> RemoveUserRole(Guid userId, string userRole)
         {
             var existingUser = await _userManager.FindByIdAsync(userId.ToString());

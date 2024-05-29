@@ -14,6 +14,10 @@ namespace Core.Migrations
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
+            migrationBuilder.DropColumn(
+                name: "UserName",
+                table: "Users");
+
             migrationBuilder.CreateTable(
                 name: "Tokens",
                 columns: table => new
@@ -52,6 +56,13 @@ namespace Core.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Tokens");
+
+            migrationBuilder.AddColumn<string>(
+                name: "UserName",
+                table: "Users",
+                type: "nvarchar(256)",
+                maxLength: 256,
+                nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "RefreshTokens",

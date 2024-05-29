@@ -56,14 +56,18 @@ namespace Core.Repository
         public async Task<ResponseManager> CreateUser(RegisterUser model)
         {
             if (model == null)
+            {
                 throw new NullReferenceException("Data provided is NULL");
+            }
 
             if (model.Password != model.ConfirmPassword)
+            {
                 return new ResponseManager
                 {
                     Message = "Confirm password doesn't match the password",
                     IsSuccess = false,
                 };
+            }
 
             //Is User Exist
             var userFound = await _userManager.FindByEmailAsync(model.Email);

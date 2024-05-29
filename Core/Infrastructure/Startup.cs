@@ -51,33 +51,97 @@ namespace Core.Infrastructure
             });
 
             services.AddAuthorizationBuilder()
-                .AddPolicy(Permissions.Users.View, builder =>
+                .AddPolicy(Permissions.Guests.ViewClinicInfo, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.View));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.ViewClinicInfo));
                 })
-                .AddPolicy(Permissions.Users.Create, builder =>
+                .AddPolicy(Permissions.Guests.ViewSchedule, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.Create));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.ViewSchedule));
                 })
-                .AddPolicy(Permissions.Users.Edit, builder =>
+                .AddPolicy(Permissions.Guests.ViewServices, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.Edit));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.ViewServices));
                 })
-                .AddPolicy(Permissions.Users.Delete, builder =>
+                .AddPolicy(Permissions.Guests.RegisterAccount, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.Delete));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.RegisterAccount));
                 })
-                .AddPolicy(Permissions.Users.ViewById, builder =>
+                .AddPolicy(Permissions.Customers.BookAppointment, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.ViewById));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.BookAppointment));
                 })
-                .AddPolicy(Permissions.Users.SuperAdminView, builder =>
+                .AddPolicy(Permissions.Customers.ReceiveNotification, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.SuperAdminView));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.ReceiveNotification));
                 })
-                .AddPolicy(Permissions.Users.SuperAdminCreate, builder =>
+                .AddPolicy(Permissions.Customers.BookPeriodicAppointment, builder =>
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Users.SuperAdminCreate));
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.BookPeriodicAppointment));
+                })
+                .AddPolicy(Permissions.Customers.ReceiveExamResult, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.ReceiveExamResult));
+                })
+                .AddPolicy(Permissions.Customers.ChatWithDentist, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.ChatWithDentist));
+                })
+                .AddPolicy(Permissions.Dentists.ViewWeeklySchedule, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ViewWeeklySchedule));
+                })
+                .AddPolicy(Permissions.Dentists.ProposePeriodicSchedule, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ProposePeriodicSchedule));
+                })
+                .AddPolicy(Permissions.Dentists.SendExamResult, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.SendExamResult));
+                })
+                .AddPolicy(Permissions.Dentists.ViewPatientHistory, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ViewPatientHistory));
+                })
+                .AddPolicy(Permissions.Dentists.ChatWithCustomer, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ChatWithCustomer));
+                })
+                .AddPolicy(Permissions.ClinicOwners.RegisterClinicInfo, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.RegisterClinicInfo));
+                })
+                .AddPolicy(Permissions.ClinicOwners.RegisterDentistInfo, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.RegisterDentistInfo));
+                })
+                .AddPolicy(Permissions.ClinicOwners.ManageClinicSchedule, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManageClinicSchedule));
+                })
+                .AddPolicy(Permissions.ClinicOwners.ManagePatientInfo, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManagePatientInfo));
+                })
+                .AddPolicy(Permissions.ClinicOwners.ManageDentistInfo, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManageDentistInfo));
+                })
+                .AddPolicy(Permissions.ClinicOwners.ManageConversations, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManageConversations));
+                })
+                .AddPolicy(Permissions.SuperAdmin.ReviewClinicInfo, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.SuperAdmin.ReviewClinicInfo));
+                })
+                .AddPolicy(Permissions.SuperAdmin.ReviewDentistInfo, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.SuperAdmin.ReviewDentistInfo));
+                })
+                .AddPolicy(Permissions.SuperAdmin.ManageAccounts, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.SuperAdmin.ManageAccounts));
                 });
 
             services.AddDbContext<AppDbContext>(options =>
@@ -110,6 +174,9 @@ namespace Core.Infrastructure
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequiredLength = 8;
                 options.User.RequireUniqueEmail = true;
+                // Not require username
+                options.User.AllowedUserNameCharacters = null;
+                options.Lockout.AllowedForNewUsers = true;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 3;
             })

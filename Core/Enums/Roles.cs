@@ -3,8 +3,9 @@ namespace Core.Enums
     public enum Roles
     {
         SuperAdmin,
-        Admin,
-        Agent,
+        ClinicOwner,
+        Dentist,
+        Customer,
         Guest,
     }
 }

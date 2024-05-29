@@ -25,20 +25,16 @@ namespace Core.Controllers
 
         // GET: api/Users
         [HttpGet]
-        //[Authorize(Roles = "SuperAdmin,Admin")]
-        [Authorize(Permissions.Users.SuperAdminView)]
-        //[AllowAnonymous]
-        public async Task<IActionResult> GetUsers() 
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
+        public async Task<IActionResult> GetUsers()
         {
             var AllUser = await _user.GetUsers();
             return Ok(AllUser);
         }
 
-        //[AllowAnonymous]
         // GET: api/Users/5
         [HttpGet("{id}")]
-        //[Authorize(Roles = "SuperAdmin, Admin, Agent")]
-        [Authorize(Permissions.Users.ViewById)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> GetUserbyId(Guid id)
         {
             var userById = await _user.GetUserbyId(id);
@@ -51,10 +47,8 @@ namespace Core.Controllers
             return Ok(userById);
         }
 
-        //[AllowAnonymous]
         // PUT: api/Users/5
-        //[Authorize(Roles = "SuperAdmin, Admin")]
-        [Authorize(Permissions.Users.Edit)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(Guid id, UpdateUser user)
         {
@@ -91,9 +85,7 @@ namespace Core.Controllers
         //}
 
         // DELETE: api/Users/5
-        //[AllowAnonymous]
-        //[Authorize(Roles = "SuperAdmin")]
-        [Authorize(Permissions.Users.Delete)]
+        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {

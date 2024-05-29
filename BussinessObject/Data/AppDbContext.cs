@@ -44,8 +44,6 @@ namespace BussinessObject.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            // Cấu hình các bảng và quan hệ cho Identity
             builder.Entity<AppUser>(entity =>
             {
                 entity.ToTable(name: "Users");

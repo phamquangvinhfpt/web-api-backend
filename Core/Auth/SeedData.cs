@@ -13,22 +13,41 @@ namespace Core.Auth
 
             // Add permissions claims to SuperAdmin role
             var superAdminRole = new IdentityRole<Guid>("SuperAdmin");
-            await EnsureRole(roleManager, superAdminRole.Name, Permissions.Users.SuperAdminView);
-            await EnsureRole(roleManager, superAdminRole.Name, Permissions.Users.SuperAdminCreate);
+            await EnsureRole(roleManager, superAdminRole.Name, Permissions.SuperAdmin.ReviewClinicInfo);
+            await EnsureRole(roleManager, superAdminRole.Name, Permissions.SuperAdmin.ReviewDentistInfo);
+            await EnsureRole(roleManager, superAdminRole.Name, Permissions.SuperAdmin.ManageAccounts);
 
-            var adminRole = new IdentityRole<Guid>("Admin");
-            await EnsureRole(roleManager, adminRole.Name, Permissions.Users.View);
-            await EnsureRole(roleManager, adminRole.Name, Permissions.Users.Create);
-            await EnsureRole(roleManager, adminRole.Name, Permissions.Users.Edit);
-            await EnsureRole(roleManager, adminRole.Name, Permissions.Users.ViewById);
+            // Add permissions claims to ClinicOwner role
+            var clinicOwnerRole = new IdentityRole<Guid>("ClinicOwner");
+            await EnsureRole(roleManager, clinicOwnerRole.Name, Permissions.ClinicOwners.RegisterClinicInfo);
+            await EnsureRole(roleManager, clinicOwnerRole.Name, Permissions.ClinicOwners.RegisterDentistInfo);
+            await EnsureRole(roleManager, clinicOwnerRole.Name, Permissions.ClinicOwners.ManageClinicSchedule);
+            await EnsureRole(roleManager, clinicOwnerRole.Name, Permissions.ClinicOwners.ManagePatientInfo);
+            await EnsureRole(roleManager, clinicOwnerRole.Name, Permissions.ClinicOwners.ManageDentistInfo);
+            await EnsureRole(roleManager, clinicOwnerRole.Name, Permissions.ClinicOwners.ManageConversations);
 
-            var agentRole = new IdentityRole<Guid>("Agent");
-            await EnsureRole(roleManager, agentRole.Name, Permissions.Users.View);
-            await EnsureRole(roleManager, agentRole.Name, Permissions.Users.Edit);
-            await EnsureRole(roleManager, agentRole.Name, Permissions.Users.ViewById);
+            // Add permissions claims to Dentist role
+            var dentistRole = new IdentityRole<Guid>("Dentist");
+            await EnsureRole(roleManager, dentistRole.Name, Permissions.Dentists.ViewWeeklySchedule);
+            await EnsureRole(roleManager, dentistRole.Name, Permissions.Dentists.ProposePeriodicSchedule);
+            await EnsureRole(roleManager, dentistRole.Name, Permissions.Dentists.SendExamResult);
+            await EnsureRole(roleManager, dentistRole.Name, Permissions.Dentists.ViewPatientHistory);
+            await EnsureRole(roleManager, dentistRole.Name, Permissions.Dentists.ChatWithCustomer);
 
-            var clientRole = new IdentityRole<Guid>("Client");
-            await EnsureRole(roleManager, clientRole.Name, Permissions.Users.ViewById);
+            // Add permissions claims to Customer role
+            var customerRole = new IdentityRole<Guid>("Customer");
+            await EnsureRole(roleManager, customerRole.Name, Permissions.Customers.BookAppointment);
+            await EnsureRole(roleManager, customerRole.Name, Permissions.Customers.ReceiveNotification);
+            await EnsureRole(roleManager, customerRole.Name, Permissions.Customers.BookPeriodicAppointment);
+            await EnsureRole(roleManager, customerRole.Name, Permissions.Customers.ReceiveExamResult);
+            await EnsureRole(roleManager, customerRole.Name, Permissions.Customers.ChatWithDentist);
+
+            // Add permissions claims to Guest role
+            var guestRole = new IdentityRole<Guid>("Guest");
+            await EnsureRole(roleManager, guestRole.Name, Permissions.Guests.ViewClinicInfo);
+            await EnsureRole(roleManager, guestRole.Name, Permissions.Guests.ViewSchedule);
+            await EnsureRole(roleManager, guestRole.Name, Permissions.Guests.ViewServices);
+            await EnsureRole(roleManager, guestRole.Name, Permissions.Guests.RegisterAccount);
         }
     }
 
