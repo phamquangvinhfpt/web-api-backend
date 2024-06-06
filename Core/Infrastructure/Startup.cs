@@ -4,6 +4,7 @@ using BusinessObject.Models;
 using Core.Auth;
 using Core.Auth.Repository;
 using Core.Auth.Services;
+using Core.Auth.Services.Clinics;
 using Core.Enums;
 using Core.Infrastructure.Exceptions;
 using Core.Infrastructure.Hangfire;
@@ -239,6 +240,7 @@ namespace Core.Infrastructure
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IDentistService, DentistService>();
+            services.AddScoped<IClinicsService, ClinicsService>();
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<TokenCleanupJob>();
             services.AddTransient<IDummyService, DummyService>();
