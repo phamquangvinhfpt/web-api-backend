@@ -127,7 +127,11 @@ namespace BusinessObject.Data
                 .WithMany()
                 .HasForeignKey(dq => dq.DentistId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            builder.Entity<DentistDetail>()
+                .HasOne(dq => dq.Clinic)
+                .WithMany()
+                .HasForeignKey(dq => dq.ClinicId)
+                .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<Prescription>()
                 .HasOne(p => p.DentalRecord)
                 .WithMany(dr => dr.Prescriptions)
