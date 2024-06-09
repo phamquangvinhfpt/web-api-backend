@@ -9,6 +9,7 @@ using Core.Infrastructure.Exceptions;
 using Core.Infrastructure.Hangfire;
 using Core.Infrastructure.Middleware;
 using Core.Infrastructure.Serilog;
+using Core.ManageDentist.Services;
 using Core.Properties;
 using Core.Repository;
 using Core.Services;
@@ -238,7 +239,7 @@ namespace Core.Infrastructure
             services.AddScoped<ITokenService, TokenService>();
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<TokenCleanupJob>();
-
+            
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
