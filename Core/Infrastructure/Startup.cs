@@ -9,7 +9,6 @@ using Core.Infrastructure.Exceptions;
 using Core.Infrastructure.Hangfire;
 using Core.Infrastructure.Middleware;
 using Core.Infrastructure.Serilog;
-using Core.ManageDentist.Services;
 using Core.Properties;
 using Core.Repository;
 using Core.Services;
@@ -21,7 +20,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Repository;
 using Serilog;
+using Services.Dentist;
 
 namespace Core.Infrastructure
 {
@@ -237,9 +238,9 @@ namespace Core.Infrastructure
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IDentistService, DentistService>();
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<TokenCleanupJob>();
-            
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BusinessObject.Models;
-using Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Services;
+using Services.Dentist;
 
 namespace Core.Controllers
 {

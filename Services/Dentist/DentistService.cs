@@ -13,9 +13,9 @@ namespace Services.Dentist
          private readonly IDentistRepository _dentistRepository;
         private readonly IMapper _mapper;
 
-        public DentistService(IDentistRepository dentistRepository, IMapper mapper)
+        public DentistService(IMapper mapper)
         {
-            _dentistRepository = dentistRepository;
+            _dentistRepository = new DentistRepo();
             _mapper = mapper;
         }
 

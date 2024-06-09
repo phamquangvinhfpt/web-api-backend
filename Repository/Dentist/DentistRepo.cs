@@ -17,27 +17,27 @@ namespace Repository
 
         public Task DeleteDentist(Guid id)
         {
-            throw new NotImplementedException();
+            return DentistDAO.Instance.DeleteDentist(id);
         }
 
         public Task<bool> DentistExists(Guid id)
         {
-            throw new NotImplementedException();
+            return DentistDAO.Instance.DentistExists(id);
         }
 
         public Task<IEnumerable<DentistDetail>> GetAllDentists()
         {
-            throw new NotImplementedException();
+            return DentistDAO.Instance.GetAllDentists();
         }
 
         public Task<DentistDetail> GetDentistById(Guid id)
         {
-            throw new NotImplementedException();
+            return DentistDAO.Instance.GetDentistById(id);
         }
 
         public Task UpdateDentist(DentistDetail dentist)
         {
-            throw new NotImplementedException();
+            return DentistDAO.Instance.UpdateDentist(dentist);
         }
     }
 }
