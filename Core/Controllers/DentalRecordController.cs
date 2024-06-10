@@ -24,5 +24,13 @@ namespace Core.Controllers
                 new Responses.Response { Status = StatusCodes.Status200OK, Message = "Success", Object = _recordService.getAllRecord() }
                 );
         }
+        [HttpGet("getRecord")]
+        public async Task<IActionResult> GetAllRecordByID([FromBody] string id)
+        {
+            return StatusCode(StatusCodes.Status200OK,
+                new Responses.Response { Status = StatusCodes.Status200OK, Message = "Success", Object = _recordService.GetRecordByID(id) }
+                );
+        }
+
     }
 }
