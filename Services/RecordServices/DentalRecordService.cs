@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BusinessObject.Models;
+using DAO.Requests;
 using Repository.RecordRepositories;
 
 namespace Services.RecordServices
@@ -13,6 +14,9 @@ namespace Services.RecordServices
         public DentalRecordService(){
             dentalRecordRepository = new DentalRecordRepository();
         }
+
+        public void CreateDentalRecord(CreateDentalRecordRequest request) => dentalRecordRepository.CreateDentalRecord(request);
+
         public List<DentalRecord> getAllRecord()
         {
             return dentalRecordRepository.getAllRecord();
