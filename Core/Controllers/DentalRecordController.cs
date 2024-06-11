@@ -1,4 +1,5 @@
-﻿using DAO.Requests;
+﻿using Core.Models;
+using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,15 +23,22 @@ namespace Core.Controllers
         public async Task<IActionResult> GetAllRecords()
         {
             return StatusCode(StatusCodes.Status200OK,
-                new Responses.Response { Status = StatusCodes.Status200OK, Message = "Success", Object = _recordService.getAllRecord() }
-                );
+                new ResponseManager { 
+                    IsSuccess = true,
+                    Message = new List<dynamic> { _recordService.getAllRecord() },
+                    Errors = null
+                });
         }
+
         [HttpPost("getRecord")]
         public async Task<IActionResult> GetAllRecordByID([FromBody] string id)
         {
             return StatusCode(StatusCodes.Status200OK,
-                new Responses.Response { Status = StatusCodes.Status200OK, Message = "Success", Object = _recordService.GetRecordByID(id) }
-                );
+                new ResponseManager { 
+                    IsSuccess = true,
+                    Message = new List<dynamic> { _recordService.GetRecordByID(id) },
+                    Errors = null
+                });
         }
 
         [HttpPost("createDentalRecord")]
@@ -38,8 +46,11 @@ namespace Core.Controllers
         {
             _recordService.CreateDentalRecord(request);
             return StatusCode(StatusCodes.Status200OK,
-                 new Responses.Response { Status = StatusCodes.Status200OK, Message = "Success", Object = null }
-                 );
+                 new ResponseManager { 
+                    IsSuccess = true,
+                    Message = "Create record success",
+                    Errors = null
+                });
         }
 
     }

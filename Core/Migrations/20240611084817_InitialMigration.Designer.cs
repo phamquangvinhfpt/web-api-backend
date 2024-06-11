@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240521191054_AddRefreshToken")]
-    partial class AddRefreshToken
+    [Migration("20240611084817_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,8 +37,8 @@ namespace Core.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("AvatarImagePath")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<byte[]>("AvatarImage")
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -122,12 +122,6 @@ namespace Core.Migrations
                     b.Property<Guid?>("AppUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("AppointmentStatus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AppointmentType")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("ClinicID")
                         .HasColumnType("uniqueidentifier");
 
@@ -143,8 +137,14 @@ namespace Core.Migrations
                     b.Property<Guid>("PatientID")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<TimeSpan>("TimeSlot")
                         .HasColumnType("time");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -194,7 +194,7 @@ namespace Core.Migrations
                     b.ToTable("Clinics");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.ClinicOpeningHour", b =>
+            modelBuilder.Entity("BusinessObject.Models.ClinicDetail", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -229,7 +229,7 @@ namespace Core.Migrations
 
                     b.HasIndex("ClinicID");
 
-                    b.ToTable("ClinicOpeningHours");
+                    b.ToTable("ClinicDetails");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.DentalRecord", b =>
@@ -244,19 +244,6 @@ namespace Core.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("LastUpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TreatmentDetails")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -266,6 +253,119 @@ namespace Core.Migrations
                         .IsUnique();
 
                     b.ToTable("DentalRecords");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.DentistDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Degree")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("DentistId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Institute")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Specialization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("YearOfExperience")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicId");
+
+                    b.HasIndex("DentistId")
+                        .IsUnique();
+
+                    b.ToTable("DentistDetails");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.FollowUpAppointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DentalRecordId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DentalRecordId");
+
+                    b.ToTable("FollowUpAppointments");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.MedicalRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DentalRecordId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Diagnosis")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Symptoms")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Treatment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId")
+                        .IsUnique();
+
+                    b.HasIndex("DentalRecordId")
+                        .IsUnique();
+
+                    b.ToTable("MedicalRecords");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Message", b =>
@@ -305,7 +405,7 @@ namespace Core.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Notification", b =>
+            modelBuilder.Entity("BusinessObject.Models.Prescription", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -314,43 +414,50 @@ namespace Core.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
+                    b.Property<Guid>("DentalRecordId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Message")
+                    b.Property<string>("Dosage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("NotificationType")
-                        .HasColumnType("int");
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("MedicineName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserID");
+                    b.HasIndex("DentalRecordId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Prescriptions");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.RefreshToken", b =>
+            modelBuilder.Entity("BusinessObject.Models.Token", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ExpiredAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool?>("IsMobile")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("bit");
@@ -365,12 +472,9 @@ namespace Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("RefreshTokenHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -379,7 +483,7 @@ namespace Core.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("Tokens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -555,10 +659,10 @@ namespace Core.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.ClinicOpeningHour", b =>
+            modelBuilder.Entity("BusinessObject.Models.ClinicDetail", b =>
                 {
                     b.HasOne("BusinessObject.Models.Clinic", "Clinic")
-                        .WithMany("OpeningHours")
+                        .WithMany("ClinicDetails")
                         .HasForeignKey("ClinicID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -575,6 +679,55 @@ namespace Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.DentistDetail", b =>
+                {
+                    b.HasOne("BusinessObject.Models.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Models.AppUser", "Dentist")
+                        .WithOne("DentistDetails")
+                        .HasForeignKey("BusinessObject.Models.DentistDetail", "DentistId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Dentist");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.FollowUpAppointment", b =>
+                {
+                    b.HasOne("BusinessObject.Models.DentalRecord", "DentalRecord")
+                        .WithMany("FollowUpAppointments")
+                        .HasForeignKey("DentalRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DentalRecord");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.MedicalRecord", b =>
+                {
+                    b.HasOne("BusinessObject.Models.Appointment", "Appointment")
+                        .WithOne()
+                        .HasForeignKey("BusinessObject.Models.MedicalRecord", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Models.DentalRecord", "DentalRecord")
+                        .WithOne("MedicalRecord")
+                        .HasForeignKey("BusinessObject.Models.MedicalRecord", "DentalRecordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("DentalRecord");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Message", b =>
@@ -596,18 +749,18 @@ namespace Core.Migrations
                     b.Navigation("Sender");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Notification", b =>
+            modelBuilder.Entity("BusinessObject.Models.Prescription", b =>
                 {
-                    b.HasOne("BusinessObject.Models.AppUser", "User")
-                        .WithMany("Notifications")
-                        .HasForeignKey("UserID")
+                    b.HasOne("BusinessObject.Models.DentalRecord", "DentalRecord")
+                        .WithMany("Prescriptions")
+                        .HasForeignKey("DentalRecordId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("DentalRecord");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.RefreshToken", b =>
+            modelBuilder.Entity("BusinessObject.Models.Token", b =>
                 {
                     b.HasOne("BusinessObject.Models.AppUser", "User")
                         .WithMany()
@@ -673,7 +826,8 @@ namespace Core.Migrations
                 {
                     b.Navigation("Appointments");
 
-                    b.Navigation("Notifications");
+                    b.Navigation("DentistDetails")
+                        .IsRequired();
 
                     b.Navigation("ReceivedMessages");
 
@@ -690,7 +844,17 @@ namespace Core.Migrations
                 {
                     b.Navigation("Appointments");
 
-                    b.Navigation("OpeningHours");
+                    b.Navigation("ClinicDetails");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.DentalRecord", b =>
+                {
+                    b.Navigation("FollowUpAppointments");
+
+                    b.Navigation("MedicalRecord")
+                        .IsRequired();
+
+                    b.Navigation("Prescriptions");
                 });
 #pragma warning restore 612, 618
         }
