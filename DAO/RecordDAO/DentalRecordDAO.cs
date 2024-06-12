@@ -42,63 +42,19 @@ namespace DAO.RecordDAO
             }
             return existingRecord;
         }
-        public void CreateDentalRecord(CreateDentalRecordRequest request)
+        public DentalRecord CreateDentalRecord(Guid appointmentID)
         {
-            var appointment = new Appointment
-            {
-                PatientID = request.appointment.PatientID,
-                DentistID = request.appointment.DentistID,
-                ClinicID = request.appointment.ClinicID,
-                TimeSlot = request.appointment.TimeSlot,
-                Date = request.appointment.Date,
-                Type = request.appointment.Type,
-                Status = BusinessObject.Enums.AppointmentStatus.Scheduled,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-            };
-            List<Prescription> listPre = new List<Prescription>();
-            foreach(var item in request.prescriptionRequests){
-                listPre.Add(new Prescription
-                {
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    MedicineName = item.MedicineName,
-                    Dosage = item.Dosage,
-                    Instructions = item.Instructions
-                });
-            }
-            var mdcRecord = new MedicalRecord
-            {
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-                Symptoms = request.MedicalRecordRequest.Symptoms,
-                Diagnosis = request.MedicalRecordRequest.Diagnosis,
-                Treatment = request.MedicalRecordRequest.Treatment,
-            };
-            List<FollowUpAppointment> listFLUA = new List<FollowUpAppointment>();
-            foreach (var item in request.followUpAppointmentRequests)
-            {
-                listFLUA.Add(new FollowUpAppointment
-                {
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    ScheduledDate = item.ScheduledDate,
-                    Reason = item.Reason,
-                });
-            }
             DentalRecord dentalRecord = new DentalRecord
             {
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
-                Appointment = appointment,
-                Prescriptions = listPre,
-                MedicalRecord = mdcRecord,
-                FollowUpAppointments = listFLUA
+                AppointmentID = appointmentID
             };
             try
             {
-                _context.DentalRecords.Add(dentalRecord);
+                var dtr = _context.DentalRecords.Add(dentalRecord);
                 _context.SaveChanges();
+                return dtr.Entity;
             }catch(Exception ex)
             {
                 throw new Exception(ex.Message);
