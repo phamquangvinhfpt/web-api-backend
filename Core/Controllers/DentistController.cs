@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BusinessObject.Models;
+
+using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Dentist;
@@ -9,7 +10,7 @@ namespace Core.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = "Bearer")]
+   [AllowAnonymous]
     public class DentistController : ControllerBase
     {
         private readonly IDentistService _dentistService;
@@ -41,7 +42,7 @@ namespace Core.Controllers
 
         // POST: api/Dentists
         [HttpPost]
-        public async Task<IActionResult> CreateDentist([FromBody] DentistDetail dentist)
+        public async Task<IActionResult> CreateDentist([FromBody] DentistDetailDTO dentist)
         {
             await _dentistService.CreateDentist(dentist);
             return CreatedAtAction(nameof(GetDentistById), new { id = dentist.DentistId }, new
@@ -54,7 +55,7 @@ namespace Core.Controllers
 
         // PUT: api/Dentists/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDentist(Guid id, [FromBody] DentistDetail dentist)
+        public async Task<IActionResult> UpdateDentist(Guid id, [FromBody] DentistDetailDTO dentist)
         {
             if (!await _dentistService.DentistExists(id))
             {

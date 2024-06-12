@@ -1,43 +1,42 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BusinessObject.Models;
+using DAO.Requests;
 using Repository;
 
 namespace Services.Dentist
 {
     public class DentistService : IDentistService
     {
-         private readonly IDentistRepository _dentistRepository;
+        private readonly IDentistRepository _dentistRepository;
         private readonly IMapper _mapper;
 
-        public DentistService(IMapper mapper)
+        public DentistService(IMapper mapper, IDentistRepository dentistRepository)
         {
-            _dentistRepository = new DentistRepo();
+            _dentistRepository = dentistRepository;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<DentistDetail>> GetAllDentists()
+        public async Task<IEnumerable<DentistDetailDTO>> GetAllDentists()
         {
             var dentists = await _dentistRepository.GetAllDentists();
-            return _mapper.Map<IEnumerable<DentistDetail>>(dentists);
+            return _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
         }
 
-        public async Task<DentistDetail> GetDentistById(Guid id)
+        public async Task<DentistDetailDTO> GetDentistById(Guid id)
         {
             var dentist = await _dentistRepository.GetDentistById(id);
-            return _mapper.Map<DentistDetail>(dentist);
+            return _mapper.Map<DentistDetailDTO>(dentist);
         }
 
-        public async Task CreateDentist(DentistDetail dentist)
+        public async Task CreateDentist(DentistDetailDTO dentist)
         {
             var dentistEntity = _mapper.Map<BusinessObject.Models.DentistDetail>(dentist);
             await _dentistRepository.CreateDentist(dentistEntity);
         }
 
-        public async Task UpdateDentist(DentistDetail dentist)
+        public async Task UpdateDentist(DentistDetailDTO dentist)
         {
             var dentistEntity = _mapper.Map<BusinessObject.Models.DentistDetail>(dentist);
             await _dentistRepository.UpdateDentist(dentistEntity);
@@ -52,5 +51,7 @@ namespace Services.Dentist
         {
             return await _dentistRepository.DentistExists(id);
         }
+
+        
     }
 }

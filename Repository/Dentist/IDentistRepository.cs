@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using BusinessObject.Models;
 
 namespace Repository
@@ -15,5 +16,6 @@ namespace Repository
         Task UpdateDentist(DentistDetail dentist);
         Task DeleteDentist(Guid id);
         Task<bool> DentistExists(Guid id);
+        
     }
 }

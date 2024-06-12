@@ -1,6 +1,11 @@
-﻿namespace Core.ManageDentist.Models
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace DAO.Requests
 {
-    public class DentistDetail
+    public class DentistDetailDTO
     {
         public Guid DentistId { get; set; }
         public Guid ClinicId { get; set; }

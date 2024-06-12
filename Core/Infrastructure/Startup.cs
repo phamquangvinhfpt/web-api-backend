@@ -235,7 +235,9 @@ namespace Core.Infrastructure
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
             services.Configure<MailSettings>(config.GetSection("MailSettings"));
-
+            services.AddScoped<IDentistRepository, DentistRepo>();
+            services.AddScoped<IDentistService, DentistService>();
+             services.AddAutoMapper(typeof(Startup));
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
