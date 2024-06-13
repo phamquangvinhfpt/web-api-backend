@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BusinessObject.Models
 {
     public class ClinicDetail : BaseEntity
@@ -8,6 +10,7 @@ namespace BusinessObject.Models
         public TimeSpan ClosingTime { get; set; }
         public int SlotDuration { get; set; }
         public int MaxPatientsPerSlot { get; set; }
+        [JsonIgnore]
         public Clinic Clinic { get; set; }
     }
 }

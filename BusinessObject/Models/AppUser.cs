@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using BusinessObject.Enums;
 using Microsoft.AspNetCore.Identity;
 
@@ -20,9 +21,13 @@ namespace BusinessObject.Models
                 return "data:image/png;base64," + Convert.ToBase64String(AvatarImage);
             }
         }
+        [JsonIgnore]
         public virtual List<Appointment> Appointments { get; set; }
+        [JsonIgnore]
         public virtual List<Message> SentMessages { get; set; }
+        [JsonIgnore]
         public virtual List<Message> ReceivedMessages { get; set; }
+        [JsonIgnore]
         public virtual DentistDetail DentistDetails { get; set; }
     }
 }

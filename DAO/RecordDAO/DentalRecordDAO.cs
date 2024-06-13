@@ -29,14 +29,19 @@ namespace DAO.RecordDAO
 
         public List<DentalRecord> getAllRecord(){
             return _context.DentalRecords
-            // .Include("Appointment")
-            // .Include("Prescriptions")
-            // .Include("MedicalRecord")
-            // .Include("FollowUpAppointments")
+             .Include("Appointment")
+             .Include("Prescriptions")
+             .Include("MedicalRecord")
+             .Include("FollowUpAppointments")
             .ToList();
         }
-        public DentalRecord GetRecordByID(string id){
-            var existingRecord = _context.DentalRecords.Where(p => p.Id.ToString() == id).FirstOrDefault();
+        public DentalRecord GetRecordByID(Guid id){
+            var existingRecord = _context.DentalRecords
+                .Include("Appointment")
+             .Include("Prescriptions")
+             .Include("MedicalRecord")
+             .Include("FollowUpAppointments")
+                .Where(p => p.Id == id).FirstOrDefault();
             if(existingRecord == null){
                 throw new FileNotFoundException("Record is not found");
             }

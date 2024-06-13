@@ -1,4 +1,5 @@
 using BusinessObject.Enums;
+using System.Text.Json.Serialization;
 
 namespace BusinessObject.Models
 {
@@ -14,6 +15,7 @@ namespace BusinessObject.Models
         public AppUser Patient { get; set; }
         public AppUser Dentist { get; set; }
         public Clinic Clinic { get; set; }
+        [JsonIgnore]
         public DentalRecord DentalRecord { get; set; }
     }
 }

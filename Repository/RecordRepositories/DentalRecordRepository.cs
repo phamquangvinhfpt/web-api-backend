@@ -14,6 +14,6 @@ namespace Repository.RecordRepositories
 
         public List<DentalRecord> getAllRecord() => DentalRecordDAO.Instance.getAllRecord();
 
-        public DentalRecord GetRecordByID(string id) => DentalRecordDAO.Instance.GetRecordByID(id);
+        public DentalRecord GetRecordByID(Guid id) => DentalRecordDAO.Instance.GetRecordByID(id);
     }
 }
