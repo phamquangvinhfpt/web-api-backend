@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BusinessObject.Models
 {
     public class DentistDetail : BaseEntity
@@ -8,7 +10,9 @@ namespace BusinessObject.Models
         public string Institute { get; set; } // Trường đào tạo (VD: Đại học Y Hà Nội)
         public int YearOfExperience { get; set; } // Số năm kinh nghiệm (VD: 5 năm)
         public string Specialization { get; set; } // Chuyên ngành (VD: Nha khoa trẻ em)
+        [JsonIgnore]
         public AppUser Dentist { get; set; }
+        [JsonIgnore]
         public Clinic Clinic { get; set; }
     }
 }

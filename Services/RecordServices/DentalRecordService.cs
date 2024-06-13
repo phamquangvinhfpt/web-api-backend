@@ -42,7 +42,7 @@ namespace Services.RecordServices
             return dentalRecordRepository.getAllRecord();
         }
 
-        public DentalRecord GetRecordByID(string id)
+        public DentalRecord GetRecordByID(Guid id)
         {
             return dentalRecordRepository.GetRecordByID(id);
         }
