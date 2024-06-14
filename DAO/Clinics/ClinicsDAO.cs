@@ -64,7 +64,7 @@ namespace DAO.Clinics
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error adding tour: {ex.Message}");
+                Console.WriteLine($"Error adding clinic: {ex.Message}");
                 throw;
             }
         }

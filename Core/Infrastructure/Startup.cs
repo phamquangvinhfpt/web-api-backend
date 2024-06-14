@@ -4,7 +4,7 @@ using BusinessObject.Models;
 using Core.Auth;
 using Core.Auth.Repository;
 using Core.Auth.Services;
-using Core.Auth.Services.Clinics;
+using Services.Clinics;
 using Core.Enums;
 using Core.Infrastructure.Exceptions;
 using Core.Infrastructure.Hangfire;
