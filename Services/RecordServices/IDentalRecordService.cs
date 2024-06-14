@@ -10,7 +10,7 @@ namespace Services.RecordServices
     public interface IDentalRecordService
     {
         public List<DentalRecord> getAllRecord();
-        public DentalRecord GetRecordByID(string id);
+        public DentalRecord GetRecordByID(Guid id);
         public void CreateDentalRecord(CreateDentalRecordRequest request);
     }
 }

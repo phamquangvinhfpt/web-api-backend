@@ -9,8 +9,8 @@ namespace Repository.RecordRepositories
 {
     public interface IDentalRecordRepository
     {
-        public DentalRecord GetRecordByID(string id);
+        public DentalRecord GetRecordByID(Guid id);
         public List<DentalRecord> getAllRecord();
-        public void CreateDentalRecord(CreateDentalRecordRequest request);
+        public DentalRecord CreateDentalRecord(Guid appointmentid);
     }
 }

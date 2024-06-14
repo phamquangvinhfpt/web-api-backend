@@ -31,7 +31,7 @@ namespace Core.Controllers
         }
 
         [HttpPost("getRecord")]
-        public async Task<IActionResult> GetAllRecordByID([FromBody] string id)
+        public async Task<IActionResult> GetAllRecordByID([FromBody] Guid id)
         {
             return StatusCode(StatusCodes.Status200OK,
                 new ResponseManager { 

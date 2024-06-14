@@ -29,76 +29,37 @@ namespace DAO.RecordDAO
 
         public List<DentalRecord> getAllRecord(){
             return _context.DentalRecords
-            // .Include("Appointment")
-            // .Include("Prescriptions")
-            // .Include("MedicalRecord")
-            // .Include("FollowUpAppointments")
+             .Include("Appointment")
+             .Include("Prescriptions")
+             .Include("MedicalRecord")
+             .Include("FollowUpAppointments")
             .ToList();
         }
-        public DentalRecord GetRecordByID(string id){
-            var existingRecord = _context.DentalRecords.Where(p => p.Id.ToString() == id).FirstOrDefault();
+        public DentalRecord GetRecordByID(Guid id){
+            var existingRecord = _context.DentalRecords
+                .Include("Appointment")
+             .Include("Prescriptions")
+             .Include("MedicalRecord")
+             .Include("FollowUpAppointments")
+                .Where(p => p.Id == id).FirstOrDefault();
             if(existingRecord == null){
                 throw new FileNotFoundException("Record is not found");
             }
             return existingRecord;
         }
-        public void CreateDentalRecord(CreateDentalRecordRequest request)
+        public DentalRecord CreateDentalRecord(Guid appointmentID)
         {
-            var appointment = new Appointment
-            {
-                PatientID = request.appointment.PatientID,
-                DentistID = request.appointment.DentistID,
-                ClinicID = request.appointment.ClinicID,
-                TimeSlot = request.appointment.TimeSlot,
-                Date = request.appointment.Date,
-                Type = request.appointment.Type,
-                Status = BusinessObject.Enums.AppointmentStatus.Scheduled,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-            };
-            List<Prescription> listPre = new List<Prescription>();
-            foreach(var item in request.prescriptionRequests){
-                listPre.Add(new Prescription
-                {
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    MedicineName = item.MedicineName,
-                    Dosage = item.Dosage,
-                    Instructions = item.Instructions
-                });
-            }
-            var mdcRecord = new MedicalRecord
-            {
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-                Symptoms = request.MedicalRecordRequest.Symptoms,
-                Diagnosis = request.MedicalRecordRequest.Diagnosis,
-                Treatment = request.MedicalRecordRequest.Treatment,
-            };
-            List<FollowUpAppointment> listFLUA = new List<FollowUpAppointment>();
-            foreach (var item in request.followUpAppointmentRequests)
-            {
-                listFLUA.Add(new FollowUpAppointment
-                {
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    ScheduledDate = item.ScheduledDate,
-                    Reason = item.Reason,
-                });
-            }
             DentalRecord dentalRecord = new DentalRecord
             {
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
-                Appointment = appointment,
-                Prescriptions = listPre,
-                MedicalRecord = mdcRecord,
-                FollowUpAppointments = listFLUA
+                AppointmentID = appointmentID
             };
             try
             {
-                _context.DentalRecords.Add(dentalRecord);
+                var dtr = _context.DentalRecords.Add(dentalRecord);
                 _context.SaveChanges();
+                return dtr.Entity;
             }catch(Exception ex)
             {
                 throw new Exception(ex.Message);
