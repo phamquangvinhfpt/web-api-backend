@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BusinessObject.Models;
 using Repository.ClinicsDetails;
 
-namespace Core.Auth.Services.ClinicsDetails
+namespace Services.ClinicsDetails
 {
     public class ClinicsDetailsService : IClinicsDetailsService
     {

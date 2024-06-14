@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BusinessObject.Models;
 using Repository.Clinics;
 
-namespace Core.Auth.Services.Clinics
+namespace Services.Clinics
 {
     public class ClinicsService : IClinicsService
     {
@@ -26,17 +26,17 @@ namespace Core.Auth.Services.Clinics
 
         public List<Clinic> GetAllClinics()
         {
-           return _clinicsRepository.GetAllClinics();  
+            return _clinicsRepository.GetAllClinics();
         }
 
         public Clinic GetClinicsById(Guid Id)
         {
-           return _clinicsRepository.GetClinicsById(Id);
+            return _clinicsRepository.GetClinicsById(Id);
         }
 
         public void UpdateClinics(Clinic clinic)
         {
-           _clinicsRepository.UpdateClinics(clinic);
+            _clinicsRepository.UpdateClinics(clinic);
         }
     }
 }
