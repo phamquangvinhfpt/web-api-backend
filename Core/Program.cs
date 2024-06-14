@@ -1,5 +1,7 @@
 using Core.Infrastructure;
+using Repository;
 using Serilog;
+using Services.Dentist;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
@@ -16,7 +18,9 @@ try
     });
     builder.Services.AddAutoMapper(typeof(Program));
     builder.Services.AddInfrastructure(builder.Configuration);
-
+    builder.Services.AddAutoMapper(typeof(MappingProfile));
+    builder.Services.AddScoped<IDentistService, DentistService>();
+    builder.Services.AddScoped<IDentistRepository, DentistRepo>();
     var app = builder.Build();
     Startup.Initialize(app.Services, app.Configuration);
 

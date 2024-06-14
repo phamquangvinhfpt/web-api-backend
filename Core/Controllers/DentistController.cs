@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-
 using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ namespace Core.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   [AllowAnonymous]
+    [AllowAnonymous]
     public class DentistController : ControllerBase
     {
         private readonly IDentistService _dentistService;
@@ -20,7 +19,6 @@ namespace Core.Controllers
             _dentistService = dentistService;
         }
 
-        // GET: api/Dentists
         [HttpGet]
         public async Task<IActionResult> GetDentists()
         {
@@ -28,7 +26,6 @@ namespace Core.Controllers
             return Ok(dentists);
         }
 
-        // GET: api/Dentists/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDentistById(Guid id)
         {
@@ -40,7 +37,6 @@ namespace Core.Controllers
             return Ok(dentist);
         }
 
-        // POST: api/Dentists
         [HttpPost]
         public async Task<IActionResult> CreateDentist([FromBody] DentistDetailDTO dentist)
         {
@@ -53,7 +49,6 @@ namespace Core.Controllers
             });
         }
 
-        // PUT: api/Dentists/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDentist(Guid id, [FromBody] DentistDetailDTO dentist)
         {
@@ -72,7 +67,6 @@ namespace Core.Controllers
             });
         }
 
-        // DELETE: api/Dentists/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDentist(Guid id)
         {

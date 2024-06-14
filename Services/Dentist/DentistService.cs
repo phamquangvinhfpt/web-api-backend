@@ -20,8 +20,17 @@ namespace Services.Dentist
 
         public async Task<IEnumerable<DentistDetailDTO>> GetAllDentists()
         {
-            var dentists = await _dentistRepository.GetAllDentists();
-            return _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
+             try
+    {
+        var dentists = await _dentistRepository.GetAllDentists();
+        var dentistDtos = _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
+        return dentistDtos;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error: {ex.Message}");
+        throw;
+    }
         }
 
         public async Task<DentistDetailDTO> GetDentistById(Guid id)
@@ -32,13 +41,13 @@ namespace Services.Dentist
 
         public async Task CreateDentist(DentistDetailDTO dentist)
         {
-            var dentistEntity = _mapper.Map<BusinessObject.Models.DentistDetail>(dentist);
+            var dentistEntity = _mapper.Map<DentistDetail>(dentist);
             await _dentistRepository.CreateDentist(dentistEntity);
         }
 
         public async Task UpdateDentist(DentistDetailDTO dentist)
         {
-            var dentistEntity = _mapper.Map<BusinessObject.Models.DentistDetail>(dentist);
+            var dentistEntity = _mapper.Map<DentistDetail>(dentist);
             await _dentistRepository.UpdateDentist(dentistEntity);
         }
 
@@ -51,7 +60,5 @@ namespace Services.Dentist
         {
             return await _dentistRepository.DentistExists(id);
         }
-
-        
     }
 }
