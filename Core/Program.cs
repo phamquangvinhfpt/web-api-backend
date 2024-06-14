@@ -1,4 +1,5 @@
 using Core.Infrastructure;
+using Hangfire;
 using Repository;
 using Serilog;
 using Services.Dentist;
@@ -36,6 +37,7 @@ try
     }
     app.UseInfrastructure();
     app.MapControllers();
+    app.MapHangfireDashboard();
     app.Run();
 }
 catch (Exception ex)
