@@ -52,13 +52,14 @@ namespace Core.Auth.Repository
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.GivenName, user.FullName),
             }.Union(userClaims).Union(roleClaims).Union(userRoles);
             var tokenClaims = new JwtSecurityToken(_config["Jwt:Issuer"],
                 _config["Jwt:Audience"],
                 claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: credentials);
             var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenClaims);
             var refreshToken = GenerateRefreshToken();
