@@ -24,8 +24,5 @@ namespace Core.Models.UserModels
         [Required]
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
-
-        [Required]
-        public string Role { get; set; }
     }
 }

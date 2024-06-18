@@ -152,10 +152,20 @@ namespace Core.Repository
                         await _userManager.AccessFailedAsync(user);
                         return new ResponseManager
                         {
-                            Message = "Invalid password, Please try again!",
+                            Message = "You only have " + (4 - await _userManager.GetAccessFailedCountAsync(user)) + " attempts left before your account gets locked out",
                             IsSuccess = false,
                         };
                     }
+                }
+
+                // Check is locked out or not
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    return new ResponseManager
+                    {
+                        Message = "User account locked out",
+                        IsSuccess = false,
+                    };
                 }
 
                 var userRole = new List<string>(await _userManager.GetRolesAsync(user));
