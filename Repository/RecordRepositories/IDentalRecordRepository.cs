@@ -12,5 +12,6 @@ namespace Repository.RecordRepositories
         public DentalRecord GetRecordByID(Guid id);
         public List<DentalRecord> getAllRecord();
         public DentalRecord CreateDentalRecord(Guid appointmentid);
+        public DentalRecord GetByAppointment(Guid appointmentId);
     }
 }

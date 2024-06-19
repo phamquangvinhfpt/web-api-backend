@@ -31,24 +31,34 @@ namespace DAO.FollowUpAppoinmentsDAO
                 return instance;
             }
         }
-        public void CreateFollowAppointments(List<FollowUpAppointmentRequest> requests, Guid dentalID)
+        public void UpdateStatus(Guid id, bool status)
         {
-            List<FollowUpAppointment> listFLUA = new List<FollowUpAppointment>();
-            foreach (var item in requests)
+            try
             {
-                listFLUA.Add(new FollowUpAppointment
+                var flu = _context.FollowUpAppointments.FirstOrDefault(p => p.Id == id);
+                flu.IsSuccess = status;
+                _context.FollowUpAppointments.Update(flu);
+                _context.SaveChanges();
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public void CreateFollowAppointments(FollowUpAppointmentRequest requests, Guid dentalID)
+        {
+            try
+            {
+                _context.FollowUpAppointments.Add(new FollowUpAppointment
                 {
                     DentalRecordId = dentalID,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
-                    ScheduledDate = item.ScheduledDate,
-                    Reason = item.Reason,
+                    ScheduledDate = requests.ScheduledDate,
+                    Reason = requests.Reason,
+                    IsSuccess = false
                 });
-            }
-
-            try
-            {
-                _context.FollowUpAppointments.AddRange(listFLUA);
                 _context.SaveChanges();
             }catch (Exception ex)
             {
@@ -59,6 +69,11 @@ namespace DAO.FollowUpAppoinmentsDAO
         public List<FollowUpAppointment> GetFollowUpAppointmentsByDentalID(Guid dentalID)
         {
             return _context.FollowUpAppointments.Where(p => p.DentalRecordId  == dentalID).ToList();
+        }
+        public List<FollowUpAppointment> GetAllIsFalse()
+        {
+            var list = _context.FollowUpAppointments.Where(p => p.IsSuccess == false).ToList();
+            return list;
         }
     }
 }

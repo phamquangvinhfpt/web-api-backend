@@ -27,20 +27,27 @@ namespace Services.RecordServices
             medicalRecordRepository = new MedicalRecordRepository();
         }
 
-        public void CreateDentalRecord(CreateDentalRecordRequest request)
+        public Appointment CreateDentalRecord(CreateDentalRecordRequest request)
         {
-            var appointment = appointmentRepository.CreateAppointment(request.appointment);
+            var appointment = appointmentRepository.GetAppointmentByID(request.appointmentID);
+            if(appointment == null)
+            {
+                throw new Exception("Appointment is not found");
+            }
             var dental = dentalRecordRepository.CreateDentalRecord(appointment.Id);
             medicalRecordRepository.CreateMedicalRecord(request.MedicalRecordRequest, appointment.Id, dental.Id);
-            followUpAppointmentRepository.CreateFollowAppointments(request.followUpAppointmentRequests, dental.Id);
+            followUpAppointmentRepository.CreateFollowAppointments(request.followUpAppointmentRequest, dental.Id);
             prescriptionRepository.CreatePrescription(request.prescriptionRequests, dental.Id);
-
+            appointmentRepository.ChangeStatusAppointment(appointment.Id, BusinessObject.Enums.AppointmentStatus.Completed);
+            return appointment;
         }
 
         public List<DentalRecord> getAllRecord()
         {
             return dentalRecordRepository.getAllRecord();
         }
+
+        public DentalRecord GetByAppointment(Guid appointmentId) => dentalRecordRepository.GetByAppointment(appointmentId);
 
         public DentalRecord GetRecordByID(Guid id)
         {

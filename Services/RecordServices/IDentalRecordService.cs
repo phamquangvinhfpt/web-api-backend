@@ -11,6 +11,7 @@ namespace Services.RecordServices
     {
         public List<DentalRecord> getAllRecord();
         public DentalRecord GetRecordByID(Guid id);
-        public void CreateDentalRecord(CreateDentalRecordRequest request);
+        public Appointment CreateDentalRecord(CreateDentalRecordRequest request);
+        public DentalRecord GetByAppointment(Guid appointmentId);
     }
 }

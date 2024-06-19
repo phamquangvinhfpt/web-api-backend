@@ -47,6 +47,17 @@ namespace DAO.RecordDAO
             }
             return existingRecord;
         }
+        public DentalRecord GetByAppointment(Guid appointmentId)
+        {
+            var existingRecord = _context.DentalRecords
+             .Include("FollowUpAppointments")
+                .Where(p => p.AppointmentID == appointmentId).FirstOrDefault();
+            if (existingRecord == null)
+            {
+                throw new FileNotFoundException("Record is not found");
+            }
+            return existingRecord;
+        }
         public DentalRecord CreateDentalRecord(Guid appointmentID)
         {
             DentalRecord dentalRecord = new DentalRecord

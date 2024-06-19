@@ -10,10 +10,12 @@ namespace Repository.FollowUpAppointments
 {
     public class FollowUpAppointmentRepository : IFollowUpAppointmentRepository
     {
-        public void CreateFollowAppointments(List<FollowUpAppointmentRequest> requests, Guid dentalID)
+        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID)
         {
-            FollowUpAppointmentDAO.Instance.CreateFollowAppointments(requests, dentalID);
+            FollowUpAppointmentDAO.Instance.CreateFollowAppointments(request, dentalID);
         }
+        public void UpdateStatus(Guid id, bool status) => FollowUpAppointmentDAO.Instance.UpdateStatus(id, status);
+        public List<FollowUpAppointment> GetAllIsFalse() => FollowUpAppointmentDAO.Instance.GetAllIsFalse();
 
         public List<FollowUpAppointment> GetFollowUpAppointmentsByDentalID(Guid dentalID)
         {

@@ -1,7 +1,9 @@
 ﻿using BusinessObject.Data;
+using BusinessObject.Enums;
 using BusinessObject.Models;
 using DAO.RecordDAO;
 using DAO.Requests;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +44,7 @@ namespace DAO.AppointmentsDAO
                 TimeSlot = request.TimeSlot,
                 Date = request.Date,
                 Type = request.Type,
-                Status = BusinessObject.Enums.AppointmentStatus.Scheduled,
+                Status = BusinessObject.Enums.AppointmentStatus.Pending,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
             };
@@ -59,9 +61,33 @@ namespace DAO.AppointmentsDAO
             
         }
 
-        public Appointment GetAppointmentByID(string id)
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status)
         {
-            return _context.Appointments.FirstOrDefault(p => p.Id.ToString() == id); 
+            try
+            {
+                var appoint = _context.Appointments.FirstOrDefault(p => p.Id == appointmentID);
+                if(appoint == null)
+                {
+                    throw new Exception("appointment is not found");
+                }
+                appoint.Status = status;
+                _context.SaveChanges();
+            }catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public Appointment GetAppointmentByID(Guid id)
+        {
+            return _context.Appointments.Include("Patient").Include("Dentist").FirstOrDefault(p => p.Id == id);
+        }
+
+        public Appointment GetAppoitmentAndDental(Guid id)
+        {
+            return _context.Appointments
+                .Include("DentalRecord")
+                .FirstOrDefault(p => p.Id == id);
         }
     }
 }
