@@ -10,6 +10,7 @@ namespace BusinessObject.Models
         public Guid ClinicID { get; set; }
         public TimeSpan TimeSlot { get; set; }
         public AppointmentType Type { get; set; }
+        public int duration { get; set; }
         public AppointmentStatus Status { get; set; }
         public DateTime Date { get; set; }
         public AppUser Patient { get; set; }

@@ -18,5 +18,11 @@ namespace Repository.Appointments
         public Appointment GetAppointmentByID(Guid id) => AppointmentDAO.Instance.GetAppointmentByID(id);
 
         public Appointment GetAppoitmentAndDental(Guid id) => AppointmentDAO.Instance.GetAppoitmentAndDental(id);
+        public void DeleteAppointment(Guid id) => AppointmentDAO.Instance.DeleteAppointment(id);
+        public List<Appointment> GetAllAppointments() => AppointmentDAO.Instance.GetAllAppointments();
+        public void UpdateAppointment(Appointment appointment) => AppointmentDAO.Instance.UpdateAppointment(appointment);
+        public List<Appointment> GetAllByStatusAndType(AppointmentStatus status, AppointmentType type) => AppointmentDAO.Instance.GetAllByStatusAndType(status, type);
+        public void UpdateAppointmentDate(Guid Id, DateTime date) => AppointmentDAO.Instance.UpdateAppointmentDate(Id, date);
+        public Appointment CreateAppointmentForPeriodic(AppointmentRequest request) => AppointmentDAO.Instance.CreateAppointmentForPeriodic(request);
     }
 }

@@ -6,6 +6,7 @@ using DAO.Requests;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace DAO.AppointmentsDAO
                 return instance;
             }
         }
-
+        // kham 1 lan
         public Appointment CreateAppointment(AppointmentRequest request)
         {
             
@@ -60,6 +61,7 @@ namespace DAO.AppointmentsDAO
             }
             
         }
+        
 
         public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status)
         {
@@ -89,5 +91,91 @@ namespace DAO.AppointmentsDAO
                 .Include("DentalRecord")
                 .FirstOrDefault(p => p.Id == id);
         }
+
+        // update appointment
+        public void UpdateAppointment(Appointment appointment)
+        {
+            try
+            {
+                _context.Appointments.Update(appointment);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        // get all appointments
+        public List<Appointment> GetAllAppointments()
+        {
+            return _context.Appointments.ToList();
+        }
+        // delete appointment
+        public void DeleteAppointment(Guid id)
+        {
+            var appointment = _context.Appointments.FirstOrDefault(p => p.Id == id);
+            try
+            {
+                _context.Appointments.Remove(appointment);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        // create appointment dinh ki cho benh nhan
+        public Appointment CreateAppointmentForPeriodic(AppointmentRequest request)
+        {
+            var appointment = new Appointment
+            {
+                PatientID = request.PatientID,
+                DentistID = request.DentistID,
+                ClinicID = request.ClinicID,
+                TimeSlot = request.TimeSlot,
+                Date = request.Date,
+                Type = BusinessObject.Enums.AppointmentType.Periodic,
+                Status = BusinessObject.Enums.AppointmentStatus.Scheduled,
+                duration = request.duration,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+            };
+            try
+            {
+                var app = _context.Appointments.Add(appointment);
+                _context.SaveChanges();
+                return app.Entity;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public List<Appointment> GetAllByStatusAndType(AppointmentStatus status, AppointmentType type)
+        {
+            var list = _context.Appointments
+                .Include(p => p.Patient).Include(p => p.Dentist)
+                       .Where(p => p.Status == status && p.Type == type)
+                       .ToList();
+            return list;
+        }
+        public void UpdateAppointmentDate( Guid Id, DateTime date)
+        {
+            try
+            {
+                var flu = _context.Appointments.FirstOrDefault(p => p.Id == Id);
+                flu.Date = date;
+                _context.Appointments.Update(flu);
+                _context.SaveChanges();
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
 }
+
