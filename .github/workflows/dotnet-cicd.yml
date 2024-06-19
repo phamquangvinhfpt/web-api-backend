@@ -63,6 +63,9 @@ jobs:
           ARGS: "-rlgoDzvc -i"
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
+          SCRIPT_BEFORE: |
+            echo "Before deploy"
+            cd ${{ secrets.WORK_DIR_TEST }} && chmod +x ./clear-image-cache.sh && ./clear-image-cache.sh
           SCRIPT_AFTER: |
             cd ${{ secrets.WORK_DIR_TEST }} && docker compose pull test && docker compose up -d test
             echo $RSYNC_STDOUT
@@ -74,6 +77,9 @@ jobs:
           ARGS: "-rlgoDzvc -i"
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
+          SCRIPT_BEFORE: |
+            echo "Before deploy"
+            cd ${{ secrets.WORK_DIR_PROD }} && chmod +x ./clear-image-cache.sh && ./clear-image-cache.sh
           SCRIPT_AFTER: |
             cd ${{ secrets.WORK_DIR_PROD }} && docker compose pull product && docker compose up -d product
             echo $RSYNC_STDOUT
