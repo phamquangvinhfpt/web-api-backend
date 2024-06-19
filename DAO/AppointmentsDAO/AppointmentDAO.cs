@@ -36,7 +36,7 @@ namespace DAO.AppointmentsDAO
         // kham 1 lan
         public Appointment CreateAppointment(AppointmentRequest request)
         {
-            
+
             var appointment = new Appointment
             {
                 PatientID = request.PatientID,
@@ -44,6 +44,7 @@ namespace DAO.AppointmentsDAO
                 ClinicID = request.ClinicID,
                 TimeSlot = request.TimeSlot,
                 Date = request.Date,
+                duration = 0,
                 Type = request.Type,
                 Status = BusinessObject.Enums.AppointmentStatus.Pending,
                 CreatedAt = DateTime.Now,
