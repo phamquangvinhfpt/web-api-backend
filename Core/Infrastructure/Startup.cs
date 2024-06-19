@@ -24,6 +24,8 @@ using Microsoft.OpenApi.Models;
 using Repository;
 using Serilog;
 using Services.Dentist;
+using Repository.FollowUpAppointments;
+using Services.FollowUpAppointments;
 
 namespace Core.Infrastructure
 {
@@ -244,7 +246,10 @@ namespace Core.Infrastructure
             services.AddScoped<IDentistService, DentistService>();
             services.AddScoped<IClinicsService, ClinicsService>();
             services.AddTransient<IMailService, MailService>();
+            services.AddScoped<IFollowUpAppointmentService, RemindFollowAppointmentService>();
+            services.AddScoped<IFollowUpAppointmentRepository, FollowUpAppointmentRepository>();
             services.AddScoped<TokenCleanupJob>();
+            services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
@@ -259,6 +264,7 @@ namespace Core.Infrastructure
                 Authorization = new [] { new HangfireAuthorizationFilter() }
             });
             RecurringJob.AddOrUpdate<TokenCleanupJob>("CleanupTokens", job => job.CleanupTokens(), Cron.Daily);
+            RecurringJob.AddOrUpdate<RemindFollowUpAppointment>("RemindFolowAppointment", job => job.RemindFollowUpAppointments(), Cron.Daily);
             app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");
