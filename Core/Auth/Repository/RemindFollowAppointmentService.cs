@@ -1,6 +1,7 @@
 ﻿using BusinessObject.Models;
 using Core.Helpers;
 using Core.Services;
+using DAO.Requests;
 using Repository.Appointments;
 using Repository.FollowUpAppointments;
 using Repository.RecordRepositories;
@@ -20,6 +21,26 @@ namespace Core.Auth.Repository
             recordRepository = new DentalRecordRepository();
             appointmentRepository = new AppointmentRepository();
             _mailService = mailService;
+        }
+
+        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<FollowUpAppointment> GetAllIsFalse()
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<FollowUpAppointment> GetFollowUpAppointmentsByDentalID(Guid dentalID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateStatus(Guid id, bool status)
+        {
+            throw new NotImplementedException();
         }
 
         async Task IFollowUpAppointmentService.RemindFollowUpAppointment()
