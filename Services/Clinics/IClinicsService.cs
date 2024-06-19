@@ -12,7 +12,7 @@ namespace Services.Clinics
         public List<Clinic> GetAllClinics();
 
         public Clinic GetClinicsById(Guid Id);
-        public void AddClinics(Clinic clinic);
+        public void AddClinics(Clinic clinic, Guid userId);
 
         public void UpdateClinics(Clinic clinic);
 

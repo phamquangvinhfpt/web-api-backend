@@ -1,32 +1,51 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BusinessObject.Models;
 using Services.Clinics;
-using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Core.Models.Clinics;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Query;
+using Core.Models;
 
 namespace Core.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous]
-    public class ClinicsController : ControllerBase
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public class ClinicsController : ODataController
     {
         private IClinicsService _clinicsService;
-        public ClinicsController(IClinicsService clinicsService)
+        private readonly ILogger<ClinicsController> _logger;
+
+        public ClinicsController(IClinicsService clinicsService, ILogger<ClinicsController> logger)
         {
             _clinicsService = clinicsService;
+            _logger = logger;
         }
 
         [HttpGet("Clinics")]
-        public List<Clinic> GetAllClinics()
+        [EnableQuery]
+        public IActionResult GetAllClinics(ODataQueryOptions<Clinic> queryOptions, [FromQuery] PaginationParameters paginationParameters)
         {
-            var clinics = _clinicsService.GetAllClinics();
-            return clinics;
+            try
+            {
+                var clinics = _clinicsService.GetAllClinics().AsQueryable();
+
+                // Apply OData query options to enable pagination, search, sort, and filter
+                clinics = (IQueryable<Clinic>)queryOptions.ApplyTo(clinics, new ODataQuerySettings());
+
+                var results = clinics
+                    .Skip(paginationParameters.PageSize * (paginationParameters.PageNumber - 1))
+                    .Take(paginationParameters.PageSize);
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Something went wrong inside GetAllClinics action: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]
@@ -43,6 +62,7 @@ namespace Core.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Something went wrong inside GetClinicsById action: {ex.Message}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -58,11 +78,12 @@ namespace Core.Controllers
                     Address = clinicsmodel.Address,
                     Verified = clinicsmodel.Verified
                 };
-                _clinicsService.AddClinics(entity);
+                _clinicsService.AddClinics(entity, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
                 return CreatedAtAction(nameof(GetClinicsById), new { id = entity.Id }, entity);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Something went wrong inside AddClinics action: {ex.Message}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -109,6 +130,5 @@ namespace Core.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
     }
 }
