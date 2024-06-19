@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240618093450_audit")]
-    partial class audit
+    [Migration("20240619140357_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -148,6 +148,9 @@ namespace Core.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("duration")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -344,6 +347,9 @@ namespace Core.Migrations
 
                     b.Property<Guid>("DentalRecordId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Reason")
                         .IsRequired()
