@@ -26,6 +26,8 @@ using Serilog;
 using Services.Dentist;
 using Repository.FollowUpAppointments;
 using Services.FollowUpAppointments;
+using Services.Appoinmets;
+using Repository.Appointments;
 
 namespace Core.Infrastructure
 {
@@ -248,6 +250,9 @@ namespace Core.Infrastructure
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<IFollowUpAppointmentService, RemindFollowAppointmentService>();
             services.AddScoped<IFollowUpAppointmentRepository, FollowUpAppointmentRepository>();
+            services.AddScoped<IAppoinmentService, AppoinmentService>();
+            services.AddScoped<IAppoinmentService, PeriodicAppointmentService>();
+            services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<TokenCleanupJob>();
             services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
@@ -265,6 +270,8 @@ namespace Core.Infrastructure
             });
             RecurringJob.AddOrUpdate<TokenCleanupJob>("CleanupTokens", job => job.CleanupTokens(), Cron.Daily);
             RecurringJob.AddOrUpdate<RemindFollowUpAppointment>("RemindFolowAppointment", job => job.RemindFollowUpAppointments(), Cron.Daily);
+            RecurringJob.AddOrUpdate<PeriodicAppointmentSending>("PeriodicSendingMail", job => job.SendPeriodicAppointments(), Cron.Minutely);
+            app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");
