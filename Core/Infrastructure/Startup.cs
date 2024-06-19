@@ -231,7 +231,7 @@ namespace Core.Infrastructure
                     builder => builder
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .WithOrigins("http://localhost:5151", "https://localhost:7124", "https://drdentist.me", "http://localhost:5000")
+                        .WithOrigins("https://drdentist.me", "http://localhost:5173")
                         .AllowCredentials());
             });
 

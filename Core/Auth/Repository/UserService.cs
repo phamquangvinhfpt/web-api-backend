@@ -91,24 +91,26 @@ namespace Core.Repository
                 {
                     var result = await _userManager.CreateAsync(identityUser, model.Password);
 
-                    //Setting Roles
-                    if (model.Role != null)
-                    {
-                        var roleCheck = await _roleManager.RoleExistsAsync(model.Role);
-                        if (roleCheck != true)
-                        {
-                            await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
-                        }
-                        else
-                        {
-                            await _userManager.AddToRoleAsync(identityUser, Convert.ToString(model.Role));
-                        }
+                    // //Setting Roles
+                    // if (model.Role != null)
+                    // {
+                    //     var roleCheck = await _roleManager.RoleExistsAsync(model.Role);
+                    //     if (roleCheck != true)
+                    //     {
+                    //         await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
+                    //     }
+                    //     else
+                    //     {
+                    //         await _userManager.AddToRoleAsync(identityUser, Convert.ToString(model.Role));
+                    //     }
 
-                    }
-                    else
-                    {
-                        await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
-                    }
+                    // }
+                    // else
+                    // {
+                    //     await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
+                    // }
+                    // settings role customer
+                    await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Customer"));
 
                     return new ResponseManager
                     {
