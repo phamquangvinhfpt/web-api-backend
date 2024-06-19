@@ -5,5 +5,6 @@ namespace BusinessObject.Enums
         Examination,
         Treatment,
         Reexamination,
+        Periodic
     }
 }

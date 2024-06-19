@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BusinessObject.Data;
 using BusinessObject.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace DAO.Clinics
 {
@@ -55,12 +56,18 @@ namespace DAO.Clinics
             }
         }
 
-        public void AddClinics(Clinic clinic)
+        public void AddClinics(Clinic clinic, Guid userId)
         {
             try
             {
+                // Check ownerID is existing in the database
+                var user = _context.Users.FirstOrDefault(u => u.Id == clinic.OwnerID);
+                if (user == null)
+                {
+                    throw new Exception("OwnerID is not existing in the database");
+                }
                 _context.Clinics.Add(clinic);
-                _context.SaveChanges(true);
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {

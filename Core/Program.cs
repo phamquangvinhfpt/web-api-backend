@@ -1,5 +1,6 @@
 using Core.Infrastructure;
 using Hangfire;
+using Microsoft.AspNetCore.OData;
 using Repository;
 using Serilog;
 using Services.Dentist;
@@ -10,7 +11,13 @@ try
 {
     Log.Information("starting server.");
     var builder = WebApplication.CreateBuilder(args);
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddOData(options => options
+                    .Filter()
+                    .Select()
+                    .Expand()
+                    .OrderBy()
+                    .SetMaxTop(100)
+                    .Count());
     builder.Host.UseSerilog((context, logger) =>
     {
         logger.MinimumLevel.Warning();

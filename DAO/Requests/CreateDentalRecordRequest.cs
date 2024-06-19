@@ -9,9 +9,10 @@ namespace DAO.Requests
 {
     public class CreateDentalRecordRequest
     {
-        public AppointmentRequest appointment { get; set;}
+        [Required]
+        public Guid appointmentID { get; set; }
         public List<PrescriptionRequest> prescriptionRequests { get; set; }
         public MedicalRecordRequest MedicalRecordRequest { get; set; }
-        public List<FollowUpAppointmentRequest> followUpAppointmentRequests { get; set; }
+        public FollowUpAppointmentRequest followUpAppointmentRequest { get; set; }
     }
 }

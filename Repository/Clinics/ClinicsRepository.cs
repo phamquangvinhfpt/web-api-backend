@@ -7,7 +7,7 @@ namespace Repository.Clinics
 {
     public class ClinicsRepository : IClinicsRepository
     {
-        public void AddClinics(Clinic clinic) => ClinicsDAO.Instance.AddClinics(clinic);
+        public void AddClinics(Clinic clinic, Guid userId) => ClinicsDAO.Instance.AddClinics(clinic, userId);
 
         public void DeleteClinics(Guid id) => ClinicsDAO.Instance.DeleteClinics(id);
 

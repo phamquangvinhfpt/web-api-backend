@@ -24,6 +24,10 @@ using Microsoft.OpenApi.Models;
 using Repository;
 using Serilog;
 using Services.Dentist;
+using Repository.FollowUpAppointments;
+using Services.FollowUpAppointments;
+using Services.Appoinmets;
+using Repository.Appointments;
 
 namespace Core.Infrastructure
 {
@@ -227,7 +231,7 @@ namespace Core.Infrastructure
                     builder => builder
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .WithOrigins("http://localhost:5151", "https://localhost:7124", "https://drdentist.me", "http://localhost:5000")
+                        .WithOrigins("https://drdentist.me", "http://localhost:5173")
                         .AllowCredentials());
             });
 
@@ -244,7 +248,13 @@ namespace Core.Infrastructure
             services.AddScoped<IDentistService, DentistService>();
             services.AddScoped<IClinicsService, ClinicsService>();
             services.AddTransient<IMailService, MailService>();
+            services.AddScoped<IFollowUpAppointmentService, RemindFollowAppointmentService>();
+            services.AddScoped<IFollowUpAppointmentRepository, FollowUpAppointmentRepository>();
+            services.AddScoped<IAppoinmentService, AppoinmentService>();
+            services.AddScoped<IAppoinmentService, PeriodicAppointmentService>();
+            services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<TokenCleanupJob>();
+            services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
@@ -259,6 +269,9 @@ namespace Core.Infrastructure
                 Authorization = new [] { new HangfireAuthorizationFilter() }
             });
             RecurringJob.AddOrUpdate<TokenCleanupJob>("CleanupTokens", job => job.CleanupTokens(), Cron.Daily);
+            RecurringJob.AddOrUpdate<RemindFollowUpAppointment>("RemindFolowAppointment", job => job.RemindFollowUpAppointments(), Cron.Daily);
+            RecurringJob.AddOrUpdate<PeriodicAppointmentSending>("PeriodicSendingMail", job => job.SendPeriodicAppointments(), Cron.Minutely);
+            app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");

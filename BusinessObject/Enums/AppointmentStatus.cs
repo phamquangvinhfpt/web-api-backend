@@ -4,6 +4,7 @@ namespace BusinessObject.Enums
     {
         Scheduled,
         Completed,
-        Cancelled
+        Cancelled,
+        Pending
     }
 }

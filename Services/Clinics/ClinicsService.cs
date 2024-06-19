@@ -14,9 +14,9 @@ namespace Services.Clinics
         {
             this._clinicsRepository = new ClinicsRepository();
         }
-        public void AddClinics(Clinic clinic)
+        public void AddClinics(Clinic clinic, Guid userId)
         {
-            _clinicsRepository.AddClinics(clinic);
+            _clinicsRepository.AddClinics(clinic, userId);
         }
 
         public void DeleteClinics(Guid Id)
