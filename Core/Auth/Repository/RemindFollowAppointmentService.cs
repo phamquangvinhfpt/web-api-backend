@@ -23,7 +23,7 @@ namespace Core.Auth.Repository
             _mailService = mailService;
         }
 
-        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID)
+        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID, Guid userID)
         {
             throw new NotImplementedException();
         }

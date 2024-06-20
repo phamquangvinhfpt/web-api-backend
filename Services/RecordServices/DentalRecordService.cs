@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BusinessObject.Models;
 using DAO.Requests;
+using Microsoft.Extensions.Logging;
 using Repository.Appointments;
 using Repository.FollowUpAppointments;
 using Repository.MedicalRecords;

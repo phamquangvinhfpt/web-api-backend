@@ -10,7 +10,7 @@ namespace Repository.MedicalRecords
 {
     public class MedicalRecordRepository : IMedicalRecordRepository
     {
-        public void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID) => MedicalRecordDAO.Instance.CreateMedicalRecord(request, appoinmentid, dentalID);
+        public void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID, Guid userID) => MedicalRecordDAO.Instance.CreateMedicalRecord(request, appoinmentid, dentalID, userID);
 
         public MedicalRecord GetMedicalRecordByDentalID(Guid dentalID) => MedicalRecordDAO.Instance.GetMedicalRecordByDentalID(dentalID);
     }

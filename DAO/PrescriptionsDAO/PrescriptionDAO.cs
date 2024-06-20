@@ -31,7 +31,7 @@ namespace DAO.PrescriptionsDAO
             }
         }
 
-        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID)
+        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID)
         {
             List<Prescription> listPre = new List<Prescription>();
             foreach (var item in request)
@@ -49,7 +49,7 @@ namespace DAO.PrescriptionsDAO
             try
             {
                 _context.Prescriptions.AddRange(listPre);
-                _context.SaveChanges();
+                _context.SaveChangesAsync(userID);
             }
             catch (Exception ex)
             {

@@ -21,16 +21,14 @@ namespace Core.Controllers
     {
         private readonly IDentalRecordService _recordService;
         private UserManager<AppUser> _userManager;
-        private readonly IUserService _useService;
-        private readonly IDentalRecordService dentalRecordService;
         private IMailService _mailService;
-        public DentalRecordController(UserManager<AppUser> userManager, IUserService userService, IMailService mailService)
+        private readonly ILogger<DentalRecordController> _logger;
+        public DentalRecordController(UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger)
         {
             _recordService = new DentalRecordService();
             _userManager = userManager;
-            _useService = userService;
-            dentalRecordService = new DentalRecordService();
             _mailService = mailService;
+            _logger = logger;
         }
 
         [HttpGet("getRecords")]
@@ -65,7 +63,7 @@ namespace Core.Controllers
 
             var patient = await _userManager.FindByIdAsync(appointment.PatientID.ToString());
 
-            var dental = dentalRecordService.GetByAppointment(appointment.Id);
+            var dental = _recordService.GetByAppointment(appointment.Id);
             var flu = dental.FollowUpAppointments[dental.FollowUpAppointments.Count - 1];
             var appointmentDate = flu.ScheduledDate.ToString("dd-MM-yyyy");
             var mailContent = new MailRequest
