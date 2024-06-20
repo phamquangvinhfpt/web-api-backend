@@ -14,6 +14,6 @@ namespace Services.FollowUpAppointments
         public List<FollowUpAppointment> GetFollowUpAppointmentsByDentalID(Guid dentalID);
         public List<FollowUpAppointment> GetAllIsFalse();
         public void UpdateStatus(Guid id, bool status);
-        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID);
+        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID, Guid userID);
     }
 }

@@ -58,7 +58,7 @@ namespace DAO.RecordDAO
             }
             return existingRecord;
         }
-        public DentalRecord CreateDentalRecord(Guid appointmentID)
+        public DentalRecord CreateDentalRecord(Guid appointmentID, Guid userID)
         {
             DentalRecord dentalRecord = new DentalRecord
             {
@@ -69,7 +69,7 @@ namespace DAO.RecordDAO
             try
             {
                 var dtr = _context.DentalRecords.Add(dentalRecord);
-                _context.SaveChanges();
+                _context.SaveChangesAsync(userID);
                 return dtr.Entity;
             }catch(Exception ex)
             {

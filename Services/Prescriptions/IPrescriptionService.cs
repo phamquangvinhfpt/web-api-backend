@@ -9,6 +9,6 @@ namespace Services.Prescriptions
 {
     public interface IPrescriptionService
     {
-        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID);
+        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID);
     }
 }

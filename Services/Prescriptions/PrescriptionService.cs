@@ -14,9 +14,9 @@ namespace Services.Prescriptions
         public PrescriptionService() {
             repository = new PrescriptionRepository();
         }
-        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID)
+        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID)
         {
-            repository.CreatePrescription(request, dentalReID);
+            repository.CreatePrescription(request, dentalReID, userID);
         }
     }
 }

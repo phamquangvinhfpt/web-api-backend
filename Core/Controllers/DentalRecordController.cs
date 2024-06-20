@@ -9,13 +9,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Math.EC;
 using Services.RecordServices;
+using System.Security.Claims;
 using System.Security.Policy;
 
 namespace Core.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class DentalRecordController : ControllerBase
     {
         private readonly IDentalRecordService _recordService;
@@ -57,7 +58,8 @@ namespace Core.Controllers
         [HttpPost("createDentalRecord")]
         public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request)
         {
-            var appointment = _recordService.CreateDentalRecord(request);
+
+            var appointment = _recordService.CreateDentalRecord(request, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
 
             var dentist = await _userManager.FindByIdAsync(appointment.DentistID.ToString());
 

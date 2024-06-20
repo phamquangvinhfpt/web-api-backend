@@ -10,7 +10,7 @@ namespace Repository.RecordRepositories
 {
     public class DentalRecordRepository : IDentalRecordRepository
     {
-        public DentalRecord CreateDentalRecord(Guid appointmentid) => DentalRecordDAO.Instance.CreateDentalRecord(appointmentid);
+        public DentalRecord CreateDentalRecord(Guid appointmentid, Guid userID) => DentalRecordDAO.Instance.CreateDentalRecord(appointmentid, userID);
 
         public List<DentalRecord> getAllRecord() => DentalRecordDAO.Instance.getAllRecord();
 
