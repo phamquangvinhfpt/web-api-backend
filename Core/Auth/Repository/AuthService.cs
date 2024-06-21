@@ -84,7 +84,7 @@ namespace Core.Repository
 
                 var confirmUser = await _userManager.FindByEmailAsync(identityUser.Email);
 
-                string url = $"{_config["AppUrl"]}/api/auth/ConfirmEmail?userid={confirmUser.Id}&token={validEmailToken}";
+                string url = $"{_config["AppUrl"]}/auth/confirm-email?userId={confirmUser.Id}&token={validEmailToken}";
 
                 var mailContent = new MailRequest
                 {
@@ -105,7 +105,7 @@ namespace Core.Repository
             return new ResponseManager
             {
                 IsSuccess = false,
-                Message = "User Email Already Registered, Try Login(/api/auth/Authenticate)",
+                Message = "User Email Already Registered, Try to login again!",
             };
 
         }
@@ -268,7 +268,7 @@ namespace Core.Repository
             var encodedToken = Encoding.UTF8.GetBytes(token);
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
             string pass = "Tester@123";
-            string url = $"{_config["AppUrl"]}/api/Auth/ResetPassword?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
+            string url = $"{_config["AppUrl"]}/auth/reset-password?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
 
             var mailContent = new MailRequest
             {
