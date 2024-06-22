@@ -10,6 +10,5 @@ namespace Core.Models.Clinics
         public Guid OwnerID { get; set; }
         public required string Name { get; set; }
         public string? Address { get; set; }
-        public bool Verified { get; set; }
     }
 }

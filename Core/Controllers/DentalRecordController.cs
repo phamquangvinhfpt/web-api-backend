@@ -34,58 +34,99 @@ namespace Core.Controllers
         [HttpGet("getRecords")]
         public async Task<IActionResult> GetAllRecords()
         {
-            return StatusCode(StatusCodes.Status200OK,
-                new ResponseManager { 
+            try
+            {
+                return StatusCode(StatusCodes.Status200OK,
+                new ResponseManager
+                {
                     IsSuccess = true,
                     Message = new List<dynamic> { _recordService.getAllRecord() },
                     Errors = null
                 });
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status400BadRequest,
+                new ResponseManager
+                {
+                    IsSuccess = false,
+                    Message = ex.Message,
+                    Errors = null
+                });
+            }
         }
 
         [HttpPost("getRecord")]
         public async Task<IActionResult> GetAllRecordByID([FromBody] Guid id)
         {
-            return StatusCode(StatusCodes.Status200OK,
-                new ResponseManager { 
-                    IsSuccess = true,
-                    Message = new List<dynamic> { _recordService.GetRecordByID(id) },
+            try
+            {
+                return StatusCode(StatusCodes.Status200OK,
+    new ResponseManager
+    {
+        IsSuccess = true,
+        Message = new List<dynamic> { _recordService.GetRecordByID(id) },
+        Errors = null
+    });
+            }catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status400BadRequest,
+                new ResponseManager
+                {
+                    IsSuccess = false,
+                    Message = ex.Message,
                     Errors = null
                 });
+            }
         }
 
         [HttpPost("createDentalRecord")]
         public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request)
         {
 
-            var appointment = _recordService.CreateDentalRecord(request, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
-
-            var dentist = await _userManager.FindByIdAsync(appointment.DentistID.ToString());
-
-            var patient = await _userManager.FindByIdAsync(appointment.PatientID.ToString());
-
-            var dental = _recordService.GetByAppointment(appointment.Id);
-            var flu = dental.FollowUpAppointments[dental.FollowUpAppointments.Count - 1];
-            var appointmentDate = flu.ScheduledDate.ToString("dd-MM-yyyy");
-            var mailContent = new MailRequest
+            try
             {
-                ToEmail = patient.Email,
-                Subject = "Your Dental Record",
-                Body = $"<p>Hi {patient.FullName},</p>"
-                    + $"<p>Thank you for your visit and for trusting our dental services.</p>"
-                    + $"<p>We would like to see you at {appointmentDate} Because {flu.Reason}</p>"
-                    + $"<p>Please let us know your availability, and we will be happy to arrange a convenient time for your next visit.</p>"
-                    + $"<p>We appreciate your ongoing trust in our dental practice and look forward to seeing you again soon.</p>"
-                    + $"<p>Best regards,</p>"
-                    + $"<p>{dentist.FullName}</p>"
-            };
-            await _mailService.SendEmailAsync(mailContent);
-            return StatusCode(StatusCodes.Status200OK,
-                 new ResponseManager
-                 {
-                     IsSuccess = true,
-                     Message = "Create record success",
-                     Errors = null
-                 });
+                var appointment = _recordService.CreateDentalRecord(request, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
+
+                var dentist = await _userManager.FindByIdAsync(appointment.DentistID.ToString());
+
+                var patient = await _userManager.FindByIdAsync(appointment.PatientID.ToString());
+
+                var dental = _recordService.GetByAppointment(appointment.Id);
+                var flu = dental.FollowUpAppointments[dental.FollowUpAppointments.Count - 1];
+                var appointmentDate = flu.ScheduledDate.ToString("dd-MM-yyyy");
+                var mailContent = new MailRequest
+                {
+                    ToEmail = patient.Email,
+                    Subject = "Your Dental Record",
+                    Body = $"<p>Hi {patient.FullName},</p>"
+                        + $"<p>Thank you for your visit and for trusting our dental services.</p>"
+                        + $"<p>We would like to see you at {appointmentDate} Because {flu.Reason}</p>"
+                        + $"<p>Please let us know your availability, and we will be happy to arrange a convenient time for your next visit.</p>"
+                        + $"<p>We appreciate your ongoing trust in our dental practice and look forward to seeing you again soon.</p>"
+                        + $"<p>Best regards,</p>"
+                        + $"<p>{dentist.FullName}</p>"
+                };
+                await _mailService.SendEmailAsync(mailContent);
+                return StatusCode(StatusCodes.Status200OK,
+                     new ResponseManager
+                     {
+                         IsSuccess = true,
+                         Message = "Create record success",
+                         Errors = null
+                     });
+            }catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(StatusCodes.Status400BadRequest,
+                        new ResponseManager
+                    {
+                        IsSuccess = false,
+                        Message = ex.Message,
+                        Errors = null
+                    });
+            }
         }
 
     }
