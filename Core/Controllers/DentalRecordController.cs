@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Org.BouncyCastle.Math.EC;
 using Services.RecordServices;
 using System.Security.Claims;
@@ -17,7 +19,7 @@ namespace Core.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public class DentalRecordController : ControllerBase
+    public class DentalRecordController : ODataController
     {
         private readonly IDentalRecordService _recordService;
         private UserManager<AppUser> _userManager;
@@ -32,15 +34,22 @@ namespace Core.Controllers
         }
 
         [HttpGet("getRecords")]
-        public async Task<IActionResult> GetAllRecords()
+        [EnableQuery]
+        public async Task<IActionResult> GetAllRecords(ODataQueryOptions<DentalRecord> queryOptions, [FromQuery] PaginationParameters paginationParameters)
         {
             try
             {
+                var dentals = _recordService.getAllRecord().AsQueryable();
+                dentals = (IQueryable<DentalRecord>)queryOptions.ApplyTo(dentals, new ODataQuerySettings());
+
+                var results = dentals
+                    .Skip(paginationParameters.PageSize * (paginationParameters.PageNumber - 1))
+                    .Take(paginationParameters.PageSize);
                 return StatusCode(StatusCodes.Status200OK,
                 new ResponseManager
                 {
                     IsSuccess = true,
-                    Message = new List<dynamic> { _recordService.getAllRecord() },
+                    Message = new List<dynamic> { results },
                     Errors = null
                 });
             }catch (Exception ex)
