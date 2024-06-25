@@ -6,7 +6,7 @@ namespace Core.Auth.Services
 {
     public interface ITokenService
     {
-        Task<TokenModel> GenerateToken(AppUser user, string deviceId, bool isMobile);
+        Task<TokenModel> GenerateToken(AppUser user, string deviceId, bool isMobile, string ipAddress);
 
         Task<ResponseManager> AddRefreshToken(Token token, string deviceId, bool isMobile);
 

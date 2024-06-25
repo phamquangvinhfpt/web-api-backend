@@ -33,7 +33,7 @@ namespace Core.Auth.Repository
 
         // GenerateToken
         // Token Genereator
-        public async Task<TokenModel> GenerateToken(AppUser user, string deviceId, bool isMobile)
+        public async Task<TokenModel> GenerateToken(AppUser user, string deviceId, bool isMobile, string ipAddress)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -55,6 +55,7 @@ namespace Core.Auth.Repository
                 new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.GivenName, user.FullName),
+                new Claim("ipAddress", ipAddress),
             }.Union(userClaims).Union(roleClaims).Union(userRoles);
             var tokenClaims = new JwtSecurityToken(_config["Jwt:Issuer"],
                 _config["Jwt:Audience"],

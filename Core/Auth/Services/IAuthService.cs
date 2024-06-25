@@ -8,7 +8,7 @@ namespace Core.Services
     {
         Task<ResponseManager> RegisterUser(RegisterUser model);
 
-        Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile);
+        Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile, string ipAddress);
 
         Task<ResponseManager> LogoutUser(string accessToken);
 

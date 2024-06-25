@@ -62,7 +62,9 @@ namespace Core.Controllers
             {
                 string deviceId = GetDeviceId(Request);
                 bool isMobile = IsMobile(Request);
-                var result = await _auth.LoginUser(model, deviceId, isMobile);
+                string ipAddress = GetIpAddress();
+
+                var result = await _auth.LoginUser(model, deviceId, isMobile, ipAddress);
 
                 if (result.IsSuccess)
                 {
@@ -102,6 +104,8 @@ namespace Core.Controllers
         {
             var deviceId = GetDeviceId(Request);
             bool isMobile = IsMobile(Request);
+            string ipAddress = GetIpAddress();
+
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKeyBytes = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
             var tokenValidateParam = new TokenValidationParameters
@@ -200,7 +204,7 @@ namespace Core.Controllers
 
                     // Update token in DB
                     var user = await _user.GetUserbyId(refreshToken.UserId);
-                    var token = await _token.GenerateToken(user.Message as AppUser, deviceId, isMobile);
+                    var token = await _token.GenerateToken(user.Message as AppUser, deviceId, isMobile, ipAddress);
 
                     return Ok(new ResponseManager
                     {
@@ -311,5 +315,11 @@ namespace Core.Controllers
                 return false;
             }
         }
+
+        [NonAction]
+        private string? GetIpAddress() =>
+        Request.Headers.ContainsKey("X-Forwarded-For")
+            ? Request.Headers["X-Forwarded-For"]
+            : HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "N/A";
     }
 }

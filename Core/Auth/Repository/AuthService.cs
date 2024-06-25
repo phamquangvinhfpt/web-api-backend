@@ -111,7 +111,7 @@ namespace Core.Repository
         }
 
         //Login User
-        public async Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile)
+        public async Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile, string ipAddress)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
 
@@ -170,7 +170,7 @@ namespace Core.Repository
 
                 var userRole = new List<string>(await _userManager.GetRolesAsync(user));
                 //Generate Token JWT
-                var Token = await _tokenService.GenerateToken(user, deviceId, isMobile);
+                var Token = await _tokenService.GenerateToken(user, deviceId, isMobile, ipAddress);
 
                 return new ResponseManager
                 {
