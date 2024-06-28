@@ -39,6 +39,7 @@ namespace Core.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            services.AddHttpContextAccessor();
             services.AddReCaptchav3(config);
             services.AddAuthentication(x =>
             {
@@ -178,6 +179,13 @@ namespace Core.Infrastructure
             services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
+            services.AddSingleton<IUriService>(o =>
+            {
+                var accessor = o.GetRequiredService<IHttpContextAccessor>();
+                var request = accessor.HttpContext.Request;
+                var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
+                return new UriService(uri);
+            });
             services.AddProblemDetails();
             return services;
         }

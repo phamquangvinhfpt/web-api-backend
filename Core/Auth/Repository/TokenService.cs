@@ -68,7 +68,6 @@ namespace Core.Auth.Repository
                 new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.GivenName, user.FullName),
-                new Claim("image_url", user.AvatarImageBase64 ?? ""),
                 new Claim("ipAddress", ipAddress),
             }.Union(userClaims).Union(roleClaims).Union(userRoles);
             var tokenClaims = new JwtSecurityToken(_config["Jwt:Issuer"],
