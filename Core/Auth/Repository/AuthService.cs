@@ -4,12 +4,14 @@ using System.Text.RegularExpressions;
 using BusinessObject.Models;
 using Core.Auth.Services;
 using Core.Helpers;
+using Core.Infrastructure.reCAPTCHAv3;
 using Core.Models;
 using Core.Models.AuthModels;
 using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using SendGrid.Helpers.Errors.Model;
 
 namespace Core.Repository
 {
@@ -21,12 +23,14 @@ namespace Core.Repository
         private IMailService _mailService;
         private readonly IUserService _useService;
         private readonly ITokenService _tokenService;
+        private readonly IReCAPTCHAv3Service _reCAPTCHAv3Service;
 
         public AuthService(IConfiguration config,
                             UserManager<AppUser> userManager,
                             IMailService mailService,
                             IUserService userService,
                             ITokenService tokenService,
+                            IReCAPTCHAv3Service reCAPTCHAv3Service,
                             RoleManager<IdentityRole<Guid>> roleManager)
         {
             _config = config;
@@ -35,11 +39,25 @@ namespace Core.Repository
             _mailService = mailService;
             _tokenService = tokenService;
             _useService = userService;
+            _reCAPTCHAv3Service = reCAPTCHAv3Service;
         }
 
         //Register User
         public async Task<ResponseManager> RegisterUser(RegisterUser model)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(model.captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             //Regex for Password
             string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$";
             if (!Regex.IsMatch(model.Password, pattern))
@@ -113,6 +131,19 @@ namespace Core.Repository
         //Login User
         public async Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile, string ipAddress)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(model.captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
@@ -254,8 +285,21 @@ namespace Core.Repository
         }
 
         //Forget Password
-        public async Task<ResponseManager> ForgetPassword(string email)
+        public async Task<ResponseManager> ForgetPassword(string email, string captchaToken)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return new ResponseManager
@@ -290,6 +334,19 @@ namespace Core.Repository
         //Reset Password
         public async Task<ResponseManager> ResetPassword(ResetPasswordModel model)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(model.captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+            
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
                 return new ResponseManager

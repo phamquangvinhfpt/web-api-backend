@@ -17,17 +17,20 @@ namespace Core.Auth.Repository
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _config;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly UserManager<AppUser> _userManager;
         private readonly ILogger<TokenService> _logger;
 
         public TokenService(AppDbContext context,
                             IConfiguration config,
                             UserManager<AppUser> userManager,
+                            RoleManager<IdentityRole<Guid>> roleManager,
                             ILogger<TokenService> logger)
         {
             _context = context;
             _config = config;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
         }
 
@@ -38,13 +41,23 @@ namespace Core.Auth.Repository
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
 
             var userRoles = roles.Select(r => new Claim(ClaimTypes.Role, r)).ToArray();
 
             var userClaims = await _userManager.GetClaimsAsync(user).ConfigureAwait(false);
 
-            var roleClaims = await _userManager.GetClaimsAsync(user).ConfigureAwait(false);
+            var roleClaims = new List<Claim>();
+
+            foreach (var role in roles)
+            {
+                var roleEntity = await _roleManager.FindByNameAsync(role).ConfigureAwait(false);
+                if (roleEntity != null)
+                {
+                    var claimsForThisRole = await _roleManager.GetClaimsAsync(roleEntity).ConfigureAwait(false);
+                    roleClaims.AddRange(claimsForThisRole);
+                }
+            }
 
             var claims = new[]
             {
@@ -55,6 +68,7 @@ namespace Core.Auth.Repository
                 new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.GivenName, user.FullName),
+                new Claim("image_url", user.AvatarImageBase64 ?? ""),
                 new Claim("ipAddress", ipAddress),
             }.Union(userClaims).Union(roleClaims).Union(userRoles);
             var tokenClaims = new JwtSecurityToken(_config["Jwt:Issuer"],

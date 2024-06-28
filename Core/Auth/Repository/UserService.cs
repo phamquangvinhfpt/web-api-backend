@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using System.Text;
+using AutoMapper;
 using BusinessObject.Data;
 using BusinessObject.Models;
 using Core.Models;
@@ -18,11 +19,13 @@ namespace Core.Repository
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly IMailService _mailService;
+        private readonly IMapper _mapper;
 
         public UserService(AppDbContext context,
                            UserManager<AppUser> userManager,
                            RoleManager<IdentityRole<Guid>> roleManager,
                            IMailService mailService,
+                           IMapper mapper,
                            IConfiguration config)
         {
             _context = context;
@@ -30,6 +33,7 @@ namespace Core.Repository
             _userManager = userManager;
             _roleManager = roleManager;
             _mailService = mailService;
+            _mapper = mapper;
         }
 
         //All Users
@@ -90,26 +94,6 @@ namespace Core.Repository
                 try
                 {
                     var result = await _userManager.CreateAsync(identityUser, model.Password);
-
-                    // //Setting Roles
-                    // if (model.Role != null)
-                    // {
-                    //     var roleCheck = await _roleManager.RoleExistsAsync(model.Role);
-                    //     if (roleCheck != true)
-                    //     {
-                    //         await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
-                    //     }
-                    //     else
-                    //     {
-                    //         await _userManager.AddToRoleAsync(identityUser, Convert.ToString(model.Role));
-                    //     }
-
-                    // }
-                    // else
-                    // {
-                    //     await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
-                    // }
-                    // settings role customer
                     await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Customer"));
 
                     return new ResponseManager
@@ -152,13 +136,13 @@ namespace Core.Repository
                         /*context.Users.Add(findUser.)*/
                         var updateUser = new AppUser
                         {
-                            Id= id,
+                            Id = id,
                             UserName = user.Username,
                             FullName = user.FullName,
                             Email = user.Email,
                             PhoneNumber = user.PhoneNo,
                         };
-                        var up =  _userManager.UpdateAsync(updateUser);
+                        var up = _userManager.UpdateAsync(updateUser);
                         var updatedUser = await _userManager.FindByIdAsync(updateUser.Id.ToString());
                         var updatedUserResponse = new AppUser
                         {

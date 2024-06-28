@@ -24,5 +24,7 @@ namespace Core.Models.UserModels
         [Required]
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
+
+        public string captchaToken { get; set; }
     }
 }

@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Core.Infrastructure;
 using Hangfire;
 using Microsoft.AspNetCore.OData;
@@ -33,7 +32,6 @@ try
     var app = builder.Build();
     Startup.Initialize(app.Services, app.Configuration);
 
-    // app.MapIdentityApi<AppUser>();
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();

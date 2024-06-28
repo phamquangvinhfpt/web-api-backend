@@ -259,12 +259,12 @@ namespace Core.Controllers
 
         // api/auth/ForgetPassword
         [HttpPost("ForgetPassword")]
-        public async Task<IActionResult> ForgetPassword(string email)
+        public async Task<IActionResult> ForgetPassword(string email, [FromBody] string captchaToken)
         {
             if (string.IsNullOrEmpty(email))
                 return NotFound();
 
-            var result = await _auth.ForgetPassword(email);
+            var result = await _auth.ForgetPassword(email, captchaToken);
 
             if (result.IsSuccess)
                 return Ok(result); // 200

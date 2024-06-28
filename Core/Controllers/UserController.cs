@@ -25,7 +25,6 @@ namespace Core.Controllers
 
         // GET: api/Users
         [HttpGet]
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> GetUsers()
         {
             var AllUser = await _user.GetUsers();
@@ -34,7 +33,6 @@ namespace Core.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         public async Task<IActionResult> GetUserbyId(Guid id)
         {
             var userById = await _user.GetUserbyId(id);
@@ -48,7 +46,6 @@ namespace Core.Controllers
         }
 
         // PUT: api/Users/5
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(Guid id, UpdateUser user)
         {
@@ -85,7 +82,6 @@ namespace Core.Controllers
         //}
 
         // DELETE: api/Users/5
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {

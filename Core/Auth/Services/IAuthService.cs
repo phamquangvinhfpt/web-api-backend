@@ -14,7 +14,7 @@ namespace Core.Services
 
         Task<ResponseManager> ConfirmEmail(Guid userId, string token);
 
-        Task<ResponseManager> ForgetPassword(string email);
+        Task<ResponseManager> ForgetPassword(string email, string captchaToken);
 
         Task<ResponseManager> ResetPassword(ResetPasswordModel model);
     }
