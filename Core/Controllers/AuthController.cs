@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Core.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api")]
     [AllowAnonymous]
     public class AuthController : ControllerBase
     {
@@ -37,13 +37,12 @@ namespace Core.Controllers
             _token = tokenService;
         }
 
-        // api/auth/Register
-        [HttpPost("Register")]
+        [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterUser model)
         {
             if (ModelState.IsValid)
             {
-                var result = await _auth.RegisterUser(model);
+                var result = await _auth.RegisterUser(model, GetOriginFromRequest());
 
                 if (result.IsSuccess)
                     return Ok(result); // Status Code: 200 
@@ -54,8 +53,7 @@ namespace Core.Controllers
             return BadRequest("Some properties are not valid"); // Status code: 400
         }
 
-        // api/auth/Authenticate
-        [HttpPost("Authenticate")]
+        [HttpPost("tokens")]
         public async Task<IActionResult> Authenticate([FromBody] AuthUser model)
         {
             if (ModelState.IsValid)
@@ -84,8 +82,7 @@ namespace Core.Controllers
             return BadRequest("Some properties are not valid");
         }
 
-        // api/auth/Logout
-        [HttpPost("Logout")]
+        [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
             var accessToken = Request.Headers["Authorization"].ToString();
@@ -98,8 +95,7 @@ namespace Core.Controllers
             return BadRequest(result);
         }
 
-        // api/auth/RefreshToken
-        [HttpPost("RefreshToken")]
+        [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] TokenModel model)
         {
             var deviceId = GetDeviceId(Request);
@@ -240,8 +236,7 @@ namespace Core.Controllers
             return epoch.AddSeconds(utcExpiryDate).ToUniversalTime();
         }
 
-        // /api/auth/ConfirmEmail?userid&token
-        [HttpGet("ConfirmEmail")]
+        [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(Guid userId, string token)
         {
             if (string.IsNullOrWhiteSpace(userId.ToString()) || string.IsNullOrWhiteSpace(token))
@@ -257,14 +252,13 @@ namespace Core.Controllers
             return BadRequest(result);
         }
 
-        // api/auth/ForgetPassword
-        [HttpPost("ForgetPassword")]
+        [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword(string email, [FromBody] string captchaToken)
         {
             if (string.IsNullOrEmpty(email))
                 return NotFound();
 
-            var result = await _auth.ForgetPassword(email, captchaToken);
+            var result = await _auth.ForgetPassword(email, captchaToken, GetOriginFromRequest());
 
             if (result.IsSuccess)
                 return Ok(result); // 200
@@ -272,8 +266,7 @@ namespace Core.Controllers
             return BadRequest(result); // 400
         }
 
-        // api/auth/ResetPassword
-        [HttpPost("ResetPassword")]
+        [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromQuery] ResetPasswordModel model)
         {
             if (ModelState.IsValid)
@@ -314,6 +307,17 @@ namespace Core.Controllers
             {
                 return false;
             }
+        }
+
+        [NonAction]
+        private string GetOriginFromRequest()
+        {
+            if (Request.Headers.TryGetValue("x-from-host", out var values))
+            {
+                return $"{Request.Scheme}://{values.First()}";
+            }
+
+            return $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}";
         }
 
         [NonAction]

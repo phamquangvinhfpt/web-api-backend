@@ -107,6 +107,15 @@ namespace Core.Auth.Permissions
             new("Create Prescriptions", Action.Create, Resource.Prescriptions, Roles.Dentist),
             new("Update Prescriptions", Action.Update, Resource.Prescriptions, Roles.Dentist),
             new("Delete Prescriptions", Action.Delete, Resource.Prescriptions, Roles.Dentist),
+
+            // APPOINTMENTS
+            new("View Appointments", Action.View, Resource.Appointments),
+            new("Create Appointments", Action.Create, Resource.Appointments, Roles.Dentist),
+            new("Update Appointments", Action.Update, Resource.Appointments, Roles.Dentist),
+            new("Delete Appointments", Action.Delete, Resource.Appointments, Roles.Dentist),
+
+            // FILES
+            new("Upload files", Action.Upload, Resource.Files)
         };
 
         public static IReadOnlyList<Permission> All { get; } = new ReadOnlyCollection<Permission>(_all);

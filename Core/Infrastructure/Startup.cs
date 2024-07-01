@@ -1,7 +1,6 @@
 using System.Text;
 using BusinessObject.Data;
 using BusinessObject.Models;
-using Core.Auth;
 using Core.Auth.Repository;
 using Core.Auth.Services;
 using Services.Clinics;
@@ -29,9 +28,11 @@ using Services.FollowUpAppointments;
 using Services.Appoinmets;
 using Repository.Appointments;
 using Core.Auth.Permissions;
-using System.Reflection;
-using System.Security.Claims;
 using Core.Infrastructure.reCAPTCHAv3;
+using Core.Infrastructure.FileStorage;
+using Microsoft.Extensions.FileProviders;
+using Core.Infrastructure.Validator;
+using Core.Infrastructure.SpeedSMS;
 
 namespace Core.Infrastructure
 {
@@ -41,6 +42,8 @@ namespace Core.Infrastructure
         {
             services.AddHttpContextAccessor();
             services.AddReCaptchav3(config);
+            services.AddValidators();
+            services.AddSpeedSMS(config);
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -170,11 +173,13 @@ namespace Core.Infrastructure
             services.AddScoped<IDentistService, DentistService>();
             services.AddScoped<IClinicsService, ClinicsService>();
             services.AddTransient<IMailService, MailService>();
+            services.AddSingleton<IFileStorageService, LocalFileStorageService>();
             services.AddScoped<IFollowUpAppointmentService, RemindFollowAppointmentService>();
             services.AddScoped<IFollowUpAppointmentRepository, FollowUpAppointmentRepository>();
             services.AddScoped<IAppoinmentService, AppoinmentService>();
             services.AddScoped<IAppoinmentService, PeriodicAppointmentService>();
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<TokenCleanupJob>();
             services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
@@ -204,6 +209,11 @@ namespace Core.Infrastructure
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");
             app.UseExceptionHandler();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Files")),
+                RequestPath = new PathString("/Files")
+            });
             app.UseAuthentication();
             app.UseAuthorization();
             return app;

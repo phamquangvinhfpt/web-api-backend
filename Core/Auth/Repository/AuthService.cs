@@ -43,7 +43,7 @@ namespace Core.Repository
         }
 
         //Register User
-        public async Task<ResponseManager> RegisterUser(RegisterUser model)
+        public async Task<ResponseManager> RegisterUser(RegisterUser model, string origin)
         {
             try
             {
@@ -102,7 +102,10 @@ namespace Core.Repository
 
                 var confirmUser = await _userManager.FindByEmailAsync(identityUser.Email);
 
-                string url = $"{_config["AppUrl"]}/auth/confirm-email?userId={confirmUser.Id}&token={validEmailToken}";
+                // string url = $"{_config["AppUrl"]}/auth/confirm-email?userId={confirmUser.Id}&token={validEmailToken}";
+                string url = await GetEmailVerificationUriAsync(confirmUser, origin, "auth/confirm-email");
+                url = QueryHelpers.AddQueryString(url, "userId", confirmUser.Id.ToString());
+                url = QueryHelpers.AddQueryString(url, "token", validEmailToken);
 
                 var mailContent = new MailRequest
                 {
@@ -245,47 +248,54 @@ namespace Core.Repository
         // ConfirmEmail
         public async Task<ResponseManager> ConfirmEmail(Guid userId, string token)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
+            try
             {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    return new ResponseManager
+                    {
+                        IsSuccess = false,
+                        Message = "User not found",
+                    };
+                }
+
+                var decodedToken = WebEncoders.Base64UrlDecode(token);
+                // Convert back to string
+                var normalToken = Encoding.UTF8.GetString(decodedToken);
+                // Unescape to get the original email token
+                normalToken = Uri.UnescapeDataString(normalToken);
+
+                // check if the token is valid
+                var result = await _userManager.ConfirmEmailAsync(user, normalToken);
+
+                if (result.Succeeded)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+
+                    return new ResponseManager
+                    {
+                        Message = "Email confirmed successfully!",
+                        IsSuccess = true,
+                    };
+                }
+
                 return new ResponseManager
                 {
                     IsSuccess = false,
-                    Message = "User not found",
+                    Message = "Email did not confirm",
+                    //Errors = result.Errors.ToArray()
                 };
             }
-
-            var decodedToken = WebEncoders.Base64UrlDecode(token);
-            // Convert back to string
-            var normalToken = Encoding.UTF8.GetString(decodedToken);
-            // Unescape to get the original email token
-            normalToken = Uri.UnescapeDataString(normalToken);
-
-            // check if the token is valid
-            var result = await _userManager.ConfirmEmailAsync(user, normalToken);
-
-            if (result.Succeeded)
+            catch (Exception ex)
             {
-                user.EmailConfirmed = true;
-                await _userManager.UpdateAsync(user);
-
-                return new ResponseManager
-                {
-                    Message = "Email confirmed successfully!",
-                    IsSuccess = true,
-                };
+                throw new Exception(ex.Message);
             }
-
-            return new ResponseManager
-            {
-                IsSuccess = false,
-                Message = "Email did not confirm",
-                //Errors = result.Errors.ToArray()
-            };
         }
 
         //Forget Password
-        public async Task<ResponseManager> ForgetPassword(string email, string captchaToken)
+        public async Task<ResponseManager> ForgetPassword(string email, string captchaToken, string origin)
         {
             try
             {
@@ -312,7 +322,12 @@ namespace Core.Repository
             var encodedToken = Encoding.UTF8.GetBytes(token);
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
             string pass = "Tester@123";
-            string url = $"{_config["AppUrl"]}/auth/reset-password?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
+            // string url = $"{_config["AppUrl"]}/auth/reset-password?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
+            string url = await GetEmailVerificationUriAsync(user, origin, "auth/reset-password");
+            url = QueryHelpers.AddQueryString(url, "Email", email);
+            url = QueryHelpers.AddQueryString(url, "Token", validToken);
+            url = QueryHelpers.AddQueryString(url, "NewPassword", pass);
+            url = QueryHelpers.AddQueryString(url, "ConfirmPassword", pass);
 
             var mailContent = new MailRequest
             {
@@ -346,7 +361,7 @@ namespace Core.Repository
             {
                 throw new UnauthorizedException(ex.Message);
             }
-            
+
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
                 return new ResponseManager
@@ -380,6 +395,14 @@ namespace Core.Repository
                 IsSuccess = false,
                 Errors = result.Errors.Select(e => e.Description),
             };
+        }
+
+        private async Task<string> GetEmailVerificationUriAsync(AppUser user, string origin, string route)
+        {
+            string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var endpointUri = new Uri(string.Concat($"{origin}/", route));
+            return endpointUri.ToString();
         }
 
         // RemoveUnicode

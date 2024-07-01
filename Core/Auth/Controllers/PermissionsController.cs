@@ -22,7 +22,7 @@ namespace Core.Auth.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost("AddPermissionToUser")]
+        [HttpPost("add-permission")]
         public async Task<IActionResult> AddPermissionsToUser(string UserId, string Action, string Resource)
         {
             if (string.IsNullOrEmpty(UserId))
@@ -45,7 +45,7 @@ namespace Core.Auth.Controllers
             return Ok($"Permissions added to user '{UserId}' successfully.");
         }
 
-        [HttpDelete("RemovePermissionFromUser")]
+        [HttpDelete("remove-permission")]
         public async Task<IActionResult> RemovePermissionsFromUser(string UserId, string Action, string Resource)
         {
             if (string.IsNullOrEmpty(UserId))
@@ -71,13 +71,13 @@ namespace Core.Auth.Controllers
             return Ok($"Permissions removed from user '{UserId}' successfully.");
         }
 
-        [HttpGet("GetPermissions")]
+        [HttpGet("permissions")]
         public IActionResult GetPermissions()
         {
             return Ok(Core.Auth.Permissions.Permissions.All);
         }
 
-        [HttpGet("GetPermissions/Role")]
+        [HttpGet("permissions/role")]
         public async Task<IActionResult> GetPermissions(string RoleId)
         {
             if (string.IsNullOrEmpty(RoleId))
@@ -97,7 +97,7 @@ namespace Core.Auth.Controllers
             return Ok(permissions);
         }
 
-        [HttpGet("GetPermissions/User")]
+        [HttpGet("permissions/user")]
         public async Task<IActionResult> GetPermissionsByUser(string UserId)
         {
             if (string.IsNullOrEmpty(UserId))

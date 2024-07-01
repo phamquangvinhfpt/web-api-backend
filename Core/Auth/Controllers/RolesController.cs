@@ -22,7 +22,7 @@ namespace Core.Auth.Controllers
         }
 
         // /api/Roles
-        [HttpGet("Roles")]
+        [HttpGet("roles")]
         public async Task<IActionResult> Index()
         {
             var roles = await _roleManager.Roles.ToListAsync();
@@ -34,7 +34,7 @@ namespace Core.Auth.Controllers
         }
 
         // /api/Roles/{RoleName}
-        [HttpPost("AddRole/Role")]
+        [HttpPost("roles")]
         public async Task<IActionResult> AddRole(string roleName)
         {
             if (roleName != null)
@@ -49,7 +49,7 @@ namespace Core.Auth.Controllers
         }
 
         // /api/Roles/{RoleName}
-        [HttpDelete("removeRole/role")]
+        [HttpDelete("roles")]
         public async Task<IActionResult> RemoveRole(string roleName)
         {
             if (roleName != null)
@@ -65,7 +65,7 @@ namespace Core.Auth.Controllers
         }
 
         // /api/userRoles/{id}
-        [HttpGet("userRoles/userId")]
+        [HttpGet("roles/userId")]
         public async Task<IActionResult> GetUserRolebyId(Guid userId)
         {
             var existingUser = await _userManager.FindByIdAsync(userId.ToString());
@@ -79,7 +79,7 @@ namespace Core.Auth.Controllers
         }
 
         // /api/AddUserRole/{RoleName}
-        [HttpPost("AddUserRole/UserRole")]
+        [HttpPost("add-user-role/role-name")]
         public async Task<IActionResult> AddUserRole(Guid userId, string userRole)
         {
             var existingUser = await _userManager.FindByIdAsync(userId.ToString());
@@ -97,7 +97,7 @@ namespace Core.Auth.Controllers
         }
 
         // /api/RemoveUserRole/{RoleName}
-        [HttpDelete("RemoveUserRole/userRole")]
+        [HttpDelete("remove-user-role/user-role")]
         public async Task<IActionResult> RemoveUserRole(Guid userId, string userRole)
         {
             var existingUser = await _userManager.FindByIdAsync(userId.ToString());

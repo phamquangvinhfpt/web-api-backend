@@ -29,6 +29,7 @@ namespace Core.Enums
             var adminEmail = "admin@root.com";
             var adminUserName = "admin";
             var adminPassword = "123Pa$$word!";
+            var image_url = "Files/Image/jpg/ad.jpg";
 
             if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
@@ -36,8 +37,11 @@ namespace Core.Enums
                 {
                     FullName = "Admin",
                     UserName = adminUserName,
+                    BirthDate = new DateOnly(2001, 1, 1),
+                    PhoneNumber = "0942705605",
                     Email = adminEmail,
                     EmailConfirmed = true,
+                    ImageUrl = image_url
                 };
 
                 var result = await userManager.CreateAsync(admin, adminPassword);

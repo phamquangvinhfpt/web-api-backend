@@ -6,7 +6,7 @@ namespace Core.Services
 {
     public interface IAuthService
     {
-        Task<ResponseManager> RegisterUser(RegisterUser model);
+        Task<ResponseManager> RegisterUser(RegisterUser model, string origin);
 
         Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile, string ipAddress);
 
@@ -14,7 +14,7 @@ namespace Core.Services
 
         Task<ResponseManager> ConfirmEmail(Guid userId, string token);
 
-        Task<ResponseManager> ForgetPassword(string email, string captchaToken);
+        Task<ResponseManager> ForgetPassword(string email, string captchaToken, string origin);
 
         Task<ResponseManager> ResetPassword(ResetPasswordModel model);
     }
