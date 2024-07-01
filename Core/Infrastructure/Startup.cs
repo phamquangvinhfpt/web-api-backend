@@ -1,7 +1,6 @@
 using System.Text;
 using BusinessObject.Data;
 using BusinessObject.Models;
-using Core.Auth;
 using Core.Auth.Repository;
 using Core.Auth.Services;
 using Services.Clinics;
@@ -28,6 +27,12 @@ using Repository.FollowUpAppointments;
 using Services.FollowUpAppointments;
 using Services.Appoinmets;
 using Repository.Appointments;
+using Core.Auth.Permissions;
+using Core.Infrastructure.reCAPTCHAv3;
+using Core.Infrastructure.FileStorage;
+using Microsoft.Extensions.FileProviders;
+using Core.Infrastructure.Validator;
+using Core.Infrastructure.SpeedSMS;
 
 namespace Core.Infrastructure
 {
@@ -35,6 +40,10 @@ namespace Core.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
         {
+            services.AddHttpContextAccessor();
+            services.AddReCaptchav3(config);
+            services.AddValidators();
+            services.AddSpeedSMS(config);
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -57,99 +66,14 @@ namespace Core.Infrastructure
                 };
             });
 
-            services.AddAuthorizationBuilder()
-                .AddPolicy(Permissions.Guests.ViewClinicInfo, builder =>
+            services.AddAuthorization(options =>
+            {
+                foreach (var permission in Permissions.All)
                 {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.ViewClinicInfo));
-                })
-                .AddPolicy(Permissions.Guests.ViewSchedule, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.ViewSchedule));
-                })
-                .AddPolicy(Permissions.Guests.ViewServices, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.ViewServices));
-                })
-                .AddPolicy(Permissions.Guests.RegisterAccount, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Guests.RegisterAccount));
-                })
-                .AddPolicy(Permissions.Customers.BookAppointment, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.BookAppointment));
-                })
-                .AddPolicy(Permissions.Customers.ReceiveNotification, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.ReceiveNotification));
-                })
-                .AddPolicy(Permissions.Customers.BookPeriodicAppointment, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.BookPeriodicAppointment));
-                })
-                .AddPolicy(Permissions.Customers.ReceiveExamResult, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.ReceiveExamResult));
-                })
-                .AddPolicy(Permissions.Customers.ChatWithDentist, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Customers.ChatWithDentist));
-                })
-                .AddPolicy(Permissions.Dentists.ViewWeeklySchedule, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ViewWeeklySchedule));
-                })
-                .AddPolicy(Permissions.Dentists.ProposePeriodicSchedule, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ProposePeriodicSchedule));
-                })
-                .AddPolicy(Permissions.Dentists.SendExamResult, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.SendExamResult));
-                })
-                .AddPolicy(Permissions.Dentists.ViewPatientHistory, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ViewPatientHistory));
-                })
-                .AddPolicy(Permissions.Dentists.ChatWithCustomer, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.Dentists.ChatWithCustomer));
-                })
-                .AddPolicy(Permissions.ClinicOwners.RegisterClinicInfo, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.RegisterClinicInfo));
-                })
-                .AddPolicy(Permissions.ClinicOwners.RegisterDentistInfo, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.RegisterDentistInfo));
-                })
-                .AddPolicy(Permissions.ClinicOwners.ManageClinicSchedule, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManageClinicSchedule));
-                })
-                .AddPolicy(Permissions.ClinicOwners.ManagePatientInfo, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManagePatientInfo));
-                })
-                .AddPolicy(Permissions.ClinicOwners.ManageDentistInfo, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManageDentistInfo));
-                })
-                .AddPolicy(Permissions.ClinicOwners.ManageConversations, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.ClinicOwners.ManageConversations));
-                })
-                .AddPolicy(Permissions.SuperAdmin.ReviewClinicInfo, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.SuperAdmin.ReviewClinicInfo));
-                })
-                .AddPolicy(Permissions.SuperAdmin.ReviewDentistInfo, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.SuperAdmin.ReviewDentistInfo));
-                })
-                .AddPolicy(Permissions.SuperAdmin.ManageAccounts, builder =>
-                {
-                    builder.AddRequirements(new PermissionRequirement(Permissions.SuperAdmin.ManageAccounts));
-                });
+                    options.AddPolicy(permission.Name, policy =>
+                        policy.Requirements.Add(new PermissionRequirement(permission.Name)));
+                }
+            });
 
             services.AddDbContext<AppDbContext>(options =>
             {
@@ -231,7 +155,7 @@ namespace Core.Infrastructure
                     builder => builder
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .WithOrigins("https://drdentist.me", "http://localhost:5173")
+                        .WithOrigins("https://drdentist.me", "http://localhost:5173", "https://localhost:7124")
                         .AllowCredentials());
             });
 
@@ -241,22 +165,32 @@ namespace Core.Infrastructure
             services.Configure<MailSettings>(config.GetSection("MailSettings"));
             services.AddScoped<IDentistRepository, DentistRepo>();
             services.AddScoped<IDentistService, DentistService>();
-             services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(typeof(Startup));
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IReCAPTCHAv3Service, ReCAPTCHAv3Service>();
             services.AddScoped<IDentistService, DentistService>();
             services.AddScoped<IClinicsService, ClinicsService>();
             services.AddTransient<IMailService, MailService>();
+            services.AddSingleton<IFileStorageService, LocalFileStorageService>();
             services.AddScoped<IFollowUpAppointmentService, RemindFollowAppointmentService>();
             services.AddScoped<IFollowUpAppointmentRepository, FollowUpAppointmentRepository>();
             services.AddScoped<IAppoinmentService, AppoinmentService>();
             services.AddScoped<IAppoinmentService, PeriodicAppointmentService>();
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<TokenCleanupJob>();
             services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
             services.AddExceptionHandler<GlobalExceptionHandler>();
+            services.AddSingleton<IUriService>(o =>
+            {
+                var accessor = o.GetRequiredService<IHttpContextAccessor>();
+                var request = accessor.HttpContext.Request;
+                var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
+                return new UriService(uri);
+            });
             services.AddProblemDetails();
             return services;
         }
@@ -266,16 +200,20 @@ namespace Core.Infrastructure
             app.UseHttpsRedirection();
             app.UseHangfireDashboard("/hangfire", new DashboardOptions
             {
-                Authorization = new [] { new HangfireAuthorizationFilter() }
+                Authorization = new[] { new HangfireAuthorizationFilter() }
             });
             RecurringJob.AddOrUpdate<TokenCleanupJob>("CleanupTokens", job => job.CleanupTokens(), Cron.Daily);
             RecurringJob.AddOrUpdate<RemindFollowUpAppointment>("RemindFolowAppointment", job => job.RemindFollowUpAppointments(), Cron.Daily);
             RecurringJob.AddOrUpdate<PeriodicAppointmentSending>("PeriodicSendingMail", job => job.SendPeriodicAppointments(), Cron.Minutely);
             app.UseMiddleware<TokenRevokedMiddleware>();
-            app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");
             app.UseExceptionHandler();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Files")),
+                RequestPath = new PathString("/Files")
+            });
             app.UseAuthentication();
             app.UseAuthorization();
             return app;
@@ -287,49 +225,18 @@ namespace Core.Infrastructure
             {
                 var services = scope.ServiceProvider;
                 var context = services.GetRequiredService<AppDbContext>();
-
                 context.Database.EnsureCreated();
-
                 InitializeRoles(services).Wait();
-
-                SeedDataAsync(services, configuration);
             }
         }
 
         private static async Task InitializeRoles(IServiceProvider services)
         {
-            var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
             var roleNames = Enum.GetNames(typeof(Roles));
-
-            foreach (var roleName in roleNames)
-            {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
-                {
-                    var role = new IdentityRole<Guid>(roleName);
-                    var result = await roleManager.CreateAsync(role);
-                    if (!result.Succeeded)
-                    {
-                        throw new Exception($"Failed to create role {roleName}");
-                    }
-                }
-            }
 
             try
             {
                 await SeedRole.Initialize(services, roleNames);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "An error occurred seeding the DB.");
-            }
-        }
-
-        private static void SeedDataAsync(IServiceProvider services, IConfiguration configuration)
-        {
-            try
-            {
-                SeedData.Initialize(services, configuration).Wait();
             }
             catch (Exception ex)
             {

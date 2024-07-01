@@ -3,7 +3,7 @@ using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
-namespace Core.Auth
+namespace Core.Auth.Permissions
 {
     public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
     {
@@ -28,27 +28,17 @@ namespace Core.Auth
                 var user = await _userManager.GetUserAsync(context.User);
                 if (user != null)
                 {
-                    var userRoleNames = await _userManager.GetRolesAsync(user);
-                    var userRoles = _roleManager.Roles.Where(x => userRoleNames.Contains(x.Name));
+                    var permissions = context.User.Claims.Where(x => x.Type == CustomClaimTypes.Permission &&
+                                                            x.Value == requirement.Permission);
 
-                    foreach (var role in userRoles)
+                    if (permissions.Any())
                     {
-                        var roleClaims = await _roleManager.GetClaimsAsync(role);
-                        var permissions = roleClaims.Where(x => x.Type == CustomClaimTypes.Permission &&
-                                                                x.Value == requirement.Permission &&
-                                                                x.Issuer == "LOCAL AUTHORITY")
-                                                    .Select(x => x.Value);
-
-                        if (permissions.Any())
+                        context.Succeed(requirement);
+                        return new ResponseManager
                         {
-                            context.Succeed(requirement);
-                            return new ResponseManager
-                            {
-                                IsSuccess = true,
-                                Message = "Authorized",
-                            };
-                        }
-
+                            IsSuccess = true,
+                            Message = "User is authorized!"
+                        };
                     }
                 }
             };

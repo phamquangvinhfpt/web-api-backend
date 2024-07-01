@@ -1,4 +1,4 @@
-namespace Core.Auth
+namespace Core.Auth.Permissions
 {
     public class CustomClaimTypes
     {

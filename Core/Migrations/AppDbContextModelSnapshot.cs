@@ -34,8 +34,8 @@ namespace Core.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("AvatarImage")
-                        .HasColumnType("varbinary(max)");
+                    b.Property<DateOnly?>("BirthDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -43,9 +43,6 @@ namespace Core.Migrations
 
                     b.Property<string>("ContactNumber")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DOB")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -60,6 +57,9 @@ namespace Core.Migrations
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");

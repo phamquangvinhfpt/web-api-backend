@@ -1,12 +1,19 @@
 using System.Data;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
+using AutoMapper;
 using BusinessObject.Data;
 using BusinessObject.Models;
+using Core.Helpers;
+using Core.Infrastructure.FileStorage;
+using Core.Infrastructure.SpeedSMS;
 using Core.Models;
+using Core.Models.Personal;
 using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Repository
@@ -18,11 +25,19 @@ namespace Core.Repository
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly IMailService _mailService;
+        private readonly IFileStorageService _fileStorage;
+        private readonly ISpeedSMSService _speedSMSService;
+        private readonly ILogger<UserService> _logger;
+        private readonly IMapper _mapper;
 
         public UserService(AppDbContext context,
                            UserManager<AppUser> userManager,
                            RoleManager<IdentityRole<Guid>> roleManager,
                            IMailService mailService,
+                           IFileStorageService fileStorage,
+                           ISpeedSMSService speedSMSService,
+                           ILogger<UserService> logger,
+                           IMapper mapper,
                            IConfiguration config)
         {
             _context = context;
@@ -30,6 +45,10 @@ namespace Core.Repository
             _userManager = userManager;
             _roleManager = roleManager;
             _mailService = mailService;
+            _fileStorage = fileStorage;
+            _speedSMSService = speedSMSService;
+            _logger = logger;
+            _mapper = mapper;
         }
 
         //All Users
@@ -90,26 +109,6 @@ namespace Core.Repository
                 try
                 {
                     var result = await _userManager.CreateAsync(identityUser, model.Password);
-
-                    // //Setting Roles
-                    // if (model.Role != null)
-                    // {
-                    //     var roleCheck = await _roleManager.RoleExistsAsync(model.Role);
-                    //     if (roleCheck != true)
-                    //     {
-                    //         await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
-                    //     }
-                    //     else
-                    //     {
-                    //         await _userManager.AddToRoleAsync(identityUser, Convert.ToString(model.Role));
-                    //     }
-
-                    // }
-                    // else
-                    // {
-                    //     await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Guest"));
-                    // }
-                    // settings role customer
                     await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Customer"));
 
                     return new ResponseManager
@@ -139,7 +138,7 @@ namespace Core.Repository
         }
 
         //Update User
-        public async Task<ResponseManager> UpdateUser(Guid id, UpdateUser user)
+        public async Task<Response<UserDetailsDto>> UpdateUser(Guid id, UpdateUserRequest user)
         {
             if (user != null)
             {
@@ -149,58 +148,51 @@ namespace Core.Repository
 
                     try
                     {
-                        /*context.Users.Add(findUser.)*/
-                        var updateUser = new AppUser
-                        {
-                            Id= id,
-                            UserName = user.Username,
-                            FullName = user.FullName,
-                            Email = user.Email,
-                            PhoneNumber = user.PhoneNo,
-                        };
-                        var up =  _userManager.UpdateAsync(updateUser);
-                        var updatedUser = await _userManager.FindByIdAsync(updateUser.Id.ToString());
+                        findUser.FullName = user.FullName;
+                        findUser.Gender = user.Gender;
+                        findUser.BirthDate = user.BirthDate;
+                        await _userManager.UpdateAsync(findUser);
                         var updatedUserResponse = new AppUser
                         {
                             Id = id,
-                            UserName = updatedUser.UserName,
-                            FullName = updatedUser.FullName,
-                            NormalizedUserName = updatedUser.Email,
-                            Email = updatedUser.Email,
-                            NormalizedEmail = updatedUser.Email,
-                            PhoneNumber = updatedUser.PhoneNumber,
-
+                            UserName = findUser.UserName,
+                            FullName = findUser.FullName,
+                            NormalizedUserName = findUser.Email,
+                            Email = findUser.Email,
+                            NormalizedEmail = findUser.Email,
+                            PhoneNumber = findUser.PhoneNumber,
                         };
-                        return new ResponseManager
+                        return new Response<UserDetailsDto>
                         {
-                            IsSuccess = true,
-                            Message = updatedUserResponse,
+                            Succeeded = true,
+                            Message = "User updated successfully!",
+                            Data = _mapper.Map<UserDetailsDto>(updatedUserResponse),
                         };
 
                     }
                     catch (Exception ex)
                     {
-
-                        return new ResponseManager
+                        return new Response<UserDetailsDto>
                         {
-                            IsSuccess = false,
+                            Succeeded = false,
                             Message = ex.Message,
+                            Data = null,
                         };
                     }
                 }
-                return new ResponseManager()
+                return new Response<UserDetailsDto>
                 {
-                    IsSuccess = false,
+                    Succeeded = false,
                     Message = "User not found!",
+                    Data = null,
                 };
-
             }
-            return new ResponseManager()
+            return new Response<UserDetailsDto>
             {
-                IsSuccess = false,
+                Succeeded = false,
                 Message = "updating property should not null!",
+                Data = null,
             };
-
         }
 
         //Delete User
@@ -219,6 +211,7 @@ namespace Core.Repository
             }
             catch
             {
+                _logger.LogError("User not found!");
                 throw;
             }
             return null;
@@ -244,23 +237,228 @@ namespace Core.Repository
             }
         }
 
+        public async Task<bool> ExistsWithEmailAsync(string email, string? exceptId = null)
+        {
+            return await _userManager.FindByEmailAsync(email.Normalize()) is AppUser user && user.Id == Guid.Parse(exceptId);
+        }
+
+        public async Task<bool> VerifyCurrentPassword(string userId, string password)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            _ = user ?? throw new Exception("User not found!");
+
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task UpdateAvatarAsync(UpdateAvatarRequest request, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+
+            if (user == null)
+            {
+                _logger.LogError("User not found");
+                throw new Exception("User not found");
+            }
+
+            string currentImage = user.ImageUrl ?? string.Empty;
+
+            if (request.Image != null)
+            {
+                RemoveCurrentAvatar(currentImage);
+                user.ImageUrl = await _fileStorage.SaveFileAsync(request.Image, cancellationToken);
+                if (string.IsNullOrEmpty(user.ImageUrl))
+                {
+                    _logger.LogError("Image upload failed");
+                    throw new Exception("Image upload failed");
+                }
+            }
+            else if (request.DeleteCurrentImage)
+            {
+                RemoveCurrentAvatar(currentImage);
+                user.ImageUrl = null;
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Update profile failed");
+                throw new Exception("Update profile failed");
+            }
+        }
+
+        private void RemoveCurrentAvatar(string currentImage)
+        {
+            if (string.IsNullOrEmpty(currentImage)) return;
+            string root = Directory.GetCurrentDirectory();
+            _fileStorage.Remove(Path.Combine(root, currentImage));
+        }
+
+        public async Task<UserDetailsDto> GetAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            _ = user ?? throw new Exception("User not found");
+
+            return _mapper.Map<UserDetailsDto>(user);
+        }
+
+        public async Task ChangePasswordAsync(ChangePasswordRequest model, string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.Password, model.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception("Change password failed");
+            }
+        }
+
+        public async Task<string> UpdateEmailAsync(UpdateEmailRequest request)
+        {
+            var user = await _userManager.FindByIdAsync(request.UserId);
+
+            _ = user ?? throw new Exception("User not found");
+
+            var result = await _userManager.SetEmailAsync(user, request.Email);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception("Email update failed");
+            }
+
+            string confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            var emailToken = Uri.EscapeDataString(confirmEmailToken);
+            var encodedEmailToken = Encoding.UTF8.GetBytes(emailToken);
+            var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
+
+            var confirmUser = await _userManager.FindByEmailAsync(user.Email);
+
+            string url = $"{_config["AppUrl"]}/auth/confirm-email?userId={confirmUser.Id}&token={validEmailToken}";
+
+            var mailContent = new MailRequest
+            {
+                ToEmail = user.Email,
+                Subject = "Confirm to update your email address",
+                Body = $"<h1>Welcome to our website</h1>" + $"<p>Hi {user.UserName} !, Please confirm your email by <a href='{url}'>Clicking here</a></p><br><strong>Email Confirmation token for ID '" + confirmUser.Id + "' : <code>" + validEmailToken + "</code></strong>",
+            };
+
+            await _mailService.SendEmailAsync(mailContent);
+
+            return confirmEmailToken;
+        }
+
+        public async Task<string> ResendEmailCodeConfirm(string userId, string origin)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            _ = user ?? throw new Exception("User not found");
+
+            if (user.Email == null || user.EmailConfirmed)
+            {
+                throw new Exception("An error occurred while resending Email confirmation.");
+            }
+
+            string emailVerificationUri = await GetEmailVerificationUriAsync(user, origin);
+            RegisterUserEmailModel eMailModel = new RegisterUserEmailModel()
+            {
+                Email = user.Email,
+                UserName = user.UserName,
+                Url = emailVerificationUri
+            };
+            var mailContent = new MailRequest
+            {
+                ToEmail = user.Email,
+                Subject = "Resend Email Confirmation",
+                Body = "<h1>Welcome to our website</h1>" + $"<p>Hi {user.UserName} !, Please confirm your email by <a href='{emailVerificationUri}'>Clicking here</a></p>",
+            };
+
+            await _mailService.SendEmailAsync(mailContent);
+            return $"Please check {user.Email} to verify your account!";
+        }
+
+        private async Task<string> GetEmailVerificationUriAsync(AppUser user, string origin)
+        {
+            string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            const string route = "auth/confirm-email";
+            var endpointUri = new Uri(string.Concat($"{origin}/", route));
+            string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), "userId", user.Id.ToString());
+            verificationUri = QueryHelpers.AddQueryString(verificationUri, "token", code);
+            return verificationUri;
+        }
+
+        public async Task UpdatePhoneNumberAsync(UpdatePhoneNumberRequest request)
+        {
+            var user = await _userManager.FindByIdAsync(request.UserId!);
+
+            _ = user ?? throw new Exception("User not found");
+
+            var result = await _userManager.SetPhoneNumberAsync(user, request.PhoneNumber);
+
+            string code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, request.PhoneNumber);
+            _speedSMSService.sendSMS(new string[] { request.PhoneNumber }, $"Your verification code is: {code}", SpeedSMSType.TYPE_CSKH);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception("Phone number update failed");
+            }
+        }
+
+        public async Task<bool> ExistsWithPhoneNumberAsync(string phoneNumber, string? exceptId = null)
+        {
+            return await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber) is AppUser user && user.Id != Guid.Parse(exceptId);
+        }
+
+        public async Task<string> ResendPhoneNumberCodeConfirm(string userId)
+        {
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            _ = user ?? throw new Exception("An error occurred while resending Mobile Phone confirmation code.");
+            if (string.IsNullOrEmpty(user.PhoneNumber) || user.PhoneNumberConfirmed) throw new Exception("An error occurred while resending Mobile Phone confirmation code.");
+
+            var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+
+            _speedSMSService.sendSMS(new string[] { user.PhoneNumber }, $"Your verification code is: {code}", SpeedSMSType.TYPE_CSKH);
+
+            return "Send code successfully!";
+        }
+
+        public async Task<string> ConfirmPhoneNumberAsync(string userId, string code)
+        {
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            _ = user ?? throw new Exception("An error occurred while confirming Mobile Phone.");
+            if (string.IsNullOrEmpty(user.PhoneNumber)) throw new Exception("An error occurred while confirming Mobile Phone.");
+
+            var result = await _userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, code);
+
+            return result.Succeeded
+                ? user.PhoneNumberConfirmed
+                    ? string.Format("Account Confirmed for Phone Number {0}. You can now use the /api/tokens endpoint to generate JWT.", user.PhoneNumber)
+                    : string.Format("Account Confirmed for Phone Number {0}. You should confirm your E-mail before using the /api/tokens endpoint to generate JWT.", user.PhoneNumber)
+                : throw new Exception(string.Format("An error occurred while confirming {0}", user.PhoneNumber));
+        }
+
         // RemoveUnicode
         public static string RemoveUnicode(string input)
         {
-            if (string.IsNullOrEmpty(input))
-                return input;
-
-            string normalizedString = input.Normalize(NormalizationForm.FormD);
-            StringBuilder stringBuilder = new StringBuilder();
-
-            foreach (char c in normalizedString)
-            {
-                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-                    stringBuilder.Append(c);
-            }
-
-            return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLower();
+            var regex = new Regex(@"\p{IsCombiningDiacriticalMarks}+");
+            var temp = input.Normalize(NormalizationForm.FormD);
+            return regex.Replace(temp, string.Empty).Replace('\u0111', 'd').Replace('\u0110', 'D').ToLower();
         }
     }
 }

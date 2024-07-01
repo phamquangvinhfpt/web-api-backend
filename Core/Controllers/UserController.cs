@@ -1,5 +1,7 @@
 using AutoMapper;
 using Core.Auth;
+using Core.Auth.Services;
+using Core.Models.Personal;
 using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,101 +9,40 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Core.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _user;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly IAuthService _auth;
+        private readonly ICurrentUserService _currentUser;
 
-        public UserController(IUserService userService, IMapper mapper, IAuthService authService)
+        public UserController(IUserService userService, IMapper mapper, IAuthService authService, ICurrentUserService currentUserService)
         {
-            _user = userService;
+            _userService = userService;
             _mapper = mapper;
             _auth = authService;
+            _currentUser = currentUserService;
         }
 
-        // GET: api/Users
-        [HttpGet]
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
-        public async Task<IActionResult> GetUsers()
+        [HttpGet("resend-phone-number-code")]
+        public async Task<string> ResendPhoneNumberCodeConfirmAsync()
         {
-            var AllUser = await _user.GetUsers();
-            return Ok(AllUser);
+            var userId = _currentUser.GetCurrentUserId();
+            return await _userService.ResendPhoneNumberCodeConfirm(userId);
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
-        public async Task<IActionResult> GetUserbyId(Guid id)
+        [HttpGet("confirm-phone-number")]
+        public Task<string> ConfirmPhoneNumberAsync([FromQuery] string code)
         {
-            var userById = await _user.GetUserbyId(id);
-
-            if (userById == null)
+            if (_currentUser.GetCurrentUserId() is not { } userId || string.IsNullOrEmpty(userId))
             {
-                return NotFound("User for the $`{id}` not found!");
+                throw new UnauthorizedAccessException();
             }
 
-            return Ok(userById);
-        }
-
-        // PUT: api/Users/5
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(Guid id, UpdateUser user)
-        {
-            if (user != null)
-            {
-                var updateUser = await _user.GetUserbyId(id);
-                if(updateUser!= null) {
-                    var userUpdated = await _user.UpdateUser(id, user);
-                    return Ok(userUpdated);
-                }
-            }
-            return BadRequest();
-            
-        }
-
-
-        //// POST: api/Users
-        //[Authorize(Permissions.Users.Create)]
-        ////[Authorize(Permissions.Users.Create)]
-        //[HttpPost]
-        //public async Task<IActionResult> PostUser([FromBody] RegisterUser user)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var result = await _auth.RegisterUser(user);
-
-        //        if (result.IsSuccess)
-        //            return Ok(result); // Status Code: 200 
-
-        //        return BadRequest(result);
-        //    }
-
-        //    return BadRequest("Some properties are not valid"); // Status code: 400
-        //}
-
-        // DELETE: api/Users/5
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(Guid id)
-        {
-            var user = await _user.GetUserbyId(id);
-            if (user == null)
-            {
-                return NotFound("User Not Found");
-            }
-
-            await _user.DeleteUser(id);
-            return Content("User Deleted");
-        }
-
-        private bool UserExists(Guid id)
-        {
-            return _user.IsExist(id);
+            return _userService.ConfirmPhoneNumberAsync(userId, code);
         }
     }
 }

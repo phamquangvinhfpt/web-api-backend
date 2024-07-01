@@ -4,42 +4,83 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Core.Models.Clinics;
-using Microsoft.AspNetCore.OData.Routing.Controllers;
-using Microsoft.AspNetCore.OData.Query;
 using Core.Models;
+using Core.Auth.Services;
+using Core.Helpers;
+using System.Linq.Expressions;
 
 namespace Core.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public class ClinicsController : ODataController
+    public class ClinicsController : ControllerBase
     {
         private IClinicsService _clinicsService;
         private readonly ILogger<ClinicsController> _logger;
+        private readonly IUriService uriService;
 
-        public ClinicsController(IClinicsService clinicsService, ILogger<ClinicsController> logger)
+        public ClinicsController(IClinicsService clinicsService, ILogger<ClinicsController> logger, IUriService uriService)
         {
             _clinicsService = clinicsService;
             _logger = logger;
+            this.uriService = uriService;
         }
 
         [HttpGet("Clinics")]
-        [EnableQuery]
-        public IActionResult GetAllClinics(ODataQueryOptions<Clinic> queryOptions, [FromQuery] PaginationParameters paginationParameters)
+        public IActionResult GetAllClinics([FromQuery] PaginationFilter filter)
         {
             try
             {
-                var clinics = _clinicsService.GetAllClinics().AsQueryable();
+                var route = Request.Path.Value;
+                var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize, filter.SortBy, filter.SortOrder, filter.SearchTerm, filter.FilterBy, filter.FilterValue);
 
-                // Apply OData query options to enable pagination, search, sort, and filter
-                clinics = (IQueryable<Clinic>)queryOptions.ApplyTo(clinics, new ODataQuerySettings());
+                var clinicsQuery = _clinicsService.GetAllClinics().AsQueryable();
 
-                var results = clinics
-                    .Skip(paginationParameters.PageSize * (paginationParameters.PageNumber - 1))
-                    .Take(paginationParameters.PageSize);
+                // Apply Search
+                if (!string.IsNullOrEmpty(validFilter.SearchTerm))
+                {
+                    clinicsQuery = clinicsQuery.Where(c =>
+                        c.Name.Contains(validFilter.SearchTerm) ||
+                        c.Address.Contains(validFilter.SearchTerm));
+                }
 
-                return Ok(results);
+                // Apply Filter
+                if (!string.IsNullOrEmpty(validFilter.FilterBy) && !string.IsNullOrEmpty(validFilter.FilterValue))
+                {
+                    var parameter = Expression.Parameter(typeof(Clinic), "x");
+                    var property = Expression.Property(parameter, validFilter.FilterBy);
+                    var constant = Expression.Constant(validFilter.FilterValue);
+                    var equality = Expression.Equal(property, constant);
+                    var lambda = Expression.Lambda<Func<Clinic, bool>>(equality, parameter);
+
+                    clinicsQuery = clinicsQuery.Where(lambda);
+                }
+
+                // Apply Sorting
+                if (!string.IsNullOrEmpty(validFilter.SortBy))
+                {
+                    var parameter = Expression.Parameter(typeof(Clinic), "x");
+                    var property = Expression.Property(parameter, validFilter.SortBy);
+                    var lambda = Expression.Lambda(property, parameter);
+                    var methodName = validFilter.SortOrder.ToLower() == "desc" ? "OrderByDescending" : "OrderBy";
+                    var resultExpression = Expression.Call(typeof(Queryable), methodName,
+                        new Type[] { typeof(Clinic), property.Type },
+                        clinicsQuery.Expression, Expression.Quote(lambda));
+                    clinicsQuery = clinicsQuery.Provider.CreateQuery<Clinic>(resultExpression);
+                }
+
+                // Get total count
+                var totalRecords = clinicsQuery.Count();
+
+                // Apply Pagination
+                var pagedData = clinicsQuery
+                    .Skip((validFilter.PageNumber - 1) * validFilter.PageSize)
+                    .Take(validFilter.PageSize)
+                    .ToList();
+
+                var pagedResponse = PaginationHelper.CreatePagedResponse(pagedData, validFilter, totalRecords, uriService, route);
+                return Ok(pagedResponse);
             }
             catch (Exception ex)
             {
