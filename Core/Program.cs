@@ -10,6 +10,10 @@ try
 {
     Log.Information("starting server.");
     var builder = WebApplication.CreateBuilder(args);
+    if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Files")))
+    {
+        Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Files"));
+    }
     builder.Services.AddControllers();
     builder.Host.UseSerilog((context, logger) =>
     {
