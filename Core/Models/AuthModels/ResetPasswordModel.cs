@@ -18,5 +18,7 @@ namespace Core.Models.AuthModels
         [Required]
         [StringLength(50, MinimumLength = 5)]
         public string ConfirmPassword { get; set; }
+
+        public string captchaToken { get; set; }
     }
 }

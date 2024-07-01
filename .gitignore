@@ -504,3 +504,10 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,intellij+all
+
+/Core/Files/*
+!/Core/Files/Image
+/Core/Files/Image/*
+!/Core/Files/Image/jpg
+/Core/Files/Image/jpg/*
+!/Core/Files/Image/jpg/ad.jpg

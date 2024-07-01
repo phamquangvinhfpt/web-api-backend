@@ -1,8 +1,11 @@
 using System.Security.Claims;
 using BusinessObject.Models;
+using Core.Auth.Permissions;
+using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Action = Core.Auth.Permissions.Action;
 namespace Core.Auth.Controllers
 {
     [Route("api")]
@@ -19,58 +22,115 @@ namespace Core.Auth.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost("AddPermission/{Role}")]
-        [Authorize(Permissions.SuperAdmin.ManageAccounts)]
-        public async Task<IActionResult> AddPermissionsToRoles(string Role)
+        [HttpPost("add-permission")]
+        public async Task<IActionResult> AddPermissionsToUser(string UserId, string Action, string Resource)
         {
-            if (Role != null)
+            if (string.IsNullOrEmpty(UserId))
             {
-                switch (Role)
+                return BadRequest("User not defined!");
+            }
+
+            var user = await _userManager.FindByIdAsync(UserId);
+            if (user == null)
+            {
+                return NotFound($"User '{UserId}' not found.");
+            }
+            var userClaims = await _userManager.GetClaimsAsync(user);
+
+            if (userClaims.Any(x => x.Type == CustomClaimTypes.Permission && x.Value == $"{Resource}.{Action}"))
+            {
+                return BadRequest($"User '{UserId}' already has the permission '{Action}' on '{Resource}'.");
+            }
+            await _userManager.AddClaimAsync(user, new Claim(CustomClaimTypes.Permission, $"Permissions.{Resource}.{Action}"));
+            return Ok($"Permissions added to user '{UserId}' successfully.");
+        }
+
+        [HttpDelete("remove-permission")]
+        public async Task<IActionResult> RemovePermissionsFromUser(string UserId, string Action, string Resource)
+        {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                return BadRequest("User not defined!");
+            }
+
+            var user = await _userManager.FindByIdAsync(UserId);
+            if (user == null)
+            {
+                return NotFound($"User '{UserId}' not found.");
+            }
+
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            var permission = userClaims.FirstOrDefault(x => x.Type == CustomClaimTypes.Permission && x.Value == $"{Resource}.{Action}");
+
+            if (permission == null)
+            {
+                return BadRequest($"User '{UserId}' does not have the permission '{Action}' on '{Resource}'.");
+            }
+
+            await _userManager.RemoveClaimAsync(user, permission);
+            return Ok($"Permissions removed from user '{UserId}' successfully.");
+        }
+
+        [HttpGet("permissions")]
+        public IActionResult GetPermissions()
+        {
+            return Ok(Core.Auth.Permissions.Permissions.All);
+        }
+
+        [HttpGet("permissions/role")]
+        public async Task<IActionResult> GetPermissions(string RoleId)
+        {
+            if (string.IsNullOrEmpty(RoleId))
+            {
+                return BadRequest("Role not defined!");
+            }
+
+            var roleEntity = await _roleManager.FindByIdAsync(RoleId);
+            if (roleEntity == null)
+            {
+                return NotFound($"Role '{RoleId}' not found.");
+            }
+
+            var roleClaims = await _roleManager.GetClaimsAsync(roleEntity);
+            var permissions = roleClaims.Where(x => x.Type == CustomClaimTypes.Permission)
+                                        .Select(x => x.Value);
+            return Ok(permissions);
+        }
+
+        [HttpGet("permissions/user")]
+        public async Task<IActionResult> GetPermissionsByUser(string UserId)
+        {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                return BadRequest("User not defined!");
+            }
+
+            var user = await _userManager.FindByIdAsync(UserId);
+            if (user == null)
+            {
+                return NotFound($"User '{UserId}' not found.");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var permissions = new List<string>();
+            foreach (var role in userRoles)
+            {
+                var roleEntity = await _roleManager.FindByNameAsync(role);
+                if (roleEntity == null)
                 {
-                    case "SuperAdmin":
-                        var superAdmin = await _roleManager.FindByNameAsync(Role);
-                        await _roleManager.AddClaimAsync(superAdmin, new Claim(CustomClaimTypes.Permission, Permissions.SuperAdmin.ReviewClinicInfo));
-                        await _roleManager.AddClaimAsync(superAdmin, new Claim(CustomClaimTypes.Permission, Permissions.SuperAdmin.ReviewDentistInfo));
-                        await _roleManager.AddClaimAsync(superAdmin, new Claim(CustomClaimTypes.Permission, Permissions.SuperAdmin.ManageAccounts));
-                        break;
-                    case "ClinicOwner":
-                        var ClinicOwner = await _roleManager.FindByNameAsync(Role);
-                        await _roleManager.AddClaimAsync(ClinicOwner, new Claim(CustomClaimTypes.Permission, Permissions.ClinicOwners.RegisterClinicInfo));
-                        await _roleManager.AddClaimAsync(ClinicOwner, new Claim(CustomClaimTypes.Permission, Permissions.ClinicOwners.RegisterDentistInfo));
-                        await _roleManager.AddClaimAsync(ClinicOwner, new Claim(CustomClaimTypes.Permission, Permissions.ClinicOwners.ManageClinicSchedule));
-                        await _roleManager.AddClaimAsync(ClinicOwner, new Claim(CustomClaimTypes.Permission, Permissions.ClinicOwners.ManagePatientInfo));
-                        await _roleManager.AddClaimAsync(ClinicOwner, new Claim(CustomClaimTypes.Permission, Permissions.ClinicOwners.ManageDentistInfo));
-                        await _roleManager.AddClaimAsync(ClinicOwner, new Claim(CustomClaimTypes.Permission, Permissions.ClinicOwners.ManageConversations));
-                        break;
-                    case "Dentist":
-                        var Dentist = await _roleManager.FindByNameAsync(Role);
-                        await _roleManager.AddClaimAsync(Dentist, new Claim(CustomClaimTypes.Permission, Permissions.Dentists.ViewWeeklySchedule));
-                        await _roleManager.AddClaimAsync(Dentist, new Claim(CustomClaimTypes.Permission, Permissions.Dentists.ProposePeriodicSchedule));
-                        await _roleManager.AddClaimAsync(Dentist, new Claim(CustomClaimTypes.Permission, Permissions.Dentists.SendExamResult));
-                        await _roleManager.AddClaimAsync(Dentist, new Claim(CustomClaimTypes.Permission, Permissions.Dentists.ViewPatientHistory));
-                        await _roleManager.AddClaimAsync(Dentist, new Claim(CustomClaimTypes.Permission, Permissions.Dentists.ChatWithCustomer));
-                        break;
-                    case "Customer":
-                        var Customer = await _roleManager.FindByNameAsync(Role);
-                        await _roleManager.AddClaimAsync(Customer, new Claim(CustomClaimTypes.Permission, Permissions.Customers.BookAppointment));
-                        await _roleManager.AddClaimAsync(Customer, new Claim(CustomClaimTypes.Permission, Permissions.Customers.ReceiveNotification));
-                        await _roleManager.AddClaimAsync(Customer, new Claim(CustomClaimTypes.Permission, Permissions.Customers.BookPeriodicAppointment));
-                        await _roleManager.AddClaimAsync(Customer, new Claim(CustomClaimTypes.Permission, Permissions.Customers.ReceiveExamResult));
-                        await _roleManager.AddClaimAsync(Customer, new Claim(CustomClaimTypes.Permission, Permissions.Customers.ChatWithDentist));
-                        break;
-                    default:
-                        var Guest = await _roleManager.FindByNameAsync("guest");
-                        await _roleManager.AddClaimAsync(Guest, new Claim(CustomClaimTypes.Permission, Permissions.Guests.ViewClinicInfo));
-                        await _roleManager.AddClaimAsync(Guest, new Claim(CustomClaimTypes.Permission, Permissions.Guests.ViewSchedule));
-                        await _roleManager.AddClaimAsync(Guest, new Claim(CustomClaimTypes.Permission, Permissions.Guests.ViewServices));
-                        await _roleManager.AddClaimAsync(Guest, new Claim(CustomClaimTypes.Permission, Permissions.Guests.RegisterAccount));
-                        break;
+                    return NotFound($"Role '{role}' not found.");
                 }
 
-                var userRole = await _userManager.FindByNameAsync(Role);
-                return Ok(userRole);
+                var roleClaims = await _roleManager.GetClaimsAsync(roleEntity);
+                var userClaims = await _userManager.GetClaimsAsync(user);
+                // Combine role claims and user claims
+                permissions = roleClaims.Where(x => x.Type == CustomClaimTypes.Permission)
+                                        .Select(x => x.Value)
+                                        .Union(userClaims.Where(x => x.Type == CustomClaimTypes.Permission)
+                                        .Select(x => x.Value))
+                                        .ToList();
             }
-            return BadRequest("Role not defined!");
+            return Ok(permissions);
         }
     }
 }

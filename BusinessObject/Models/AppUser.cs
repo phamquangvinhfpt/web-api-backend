@@ -9,18 +9,10 @@ namespace BusinessObject.Models
     {
         public UserStatus Status { get; set; }
         public required string FullName { get; set; }
-        public DateTime? DOB { get; set; }
+        public DateOnly? BirthDate { get; set; }
         public Gender Gender { get; set; } = Gender.Male;
-        public string? ContactNumber { get; set; }
         public string? Address { get; set; }
-        public byte[]? AvatarImage { get; set; }
-        [NotMapped]
-        public string? AvatarImageBase64 {
-            get {
-                if (AvatarImage == null) return null;
-                return "data:image/png;base64," + Convert.ToBase64String(AvatarImage);
-            }
-        }
+        public string? ImageUrl { get; set; }
         [JsonIgnore]
         public virtual List<Appointment> Appointments { get; set; }
         [JsonIgnore]

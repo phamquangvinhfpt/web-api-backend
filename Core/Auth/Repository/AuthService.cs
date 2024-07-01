@@ -4,12 +4,14 @@ using System.Text.RegularExpressions;
 using BusinessObject.Models;
 using Core.Auth.Services;
 using Core.Helpers;
+using Core.Infrastructure.reCAPTCHAv3;
 using Core.Models;
 using Core.Models.AuthModels;
 using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using SendGrid.Helpers.Errors.Model;
 
 namespace Core.Repository
 {
@@ -21,12 +23,14 @@ namespace Core.Repository
         private IMailService _mailService;
         private readonly IUserService _useService;
         private readonly ITokenService _tokenService;
+        private readonly IReCAPTCHAv3Service _reCAPTCHAv3Service;
 
         public AuthService(IConfiguration config,
                             UserManager<AppUser> userManager,
                             IMailService mailService,
                             IUserService userService,
                             ITokenService tokenService,
+                            IReCAPTCHAv3Service reCAPTCHAv3Service,
                             RoleManager<IdentityRole<Guid>> roleManager)
         {
             _config = config;
@@ -35,11 +39,25 @@ namespace Core.Repository
             _mailService = mailService;
             _tokenService = tokenService;
             _useService = userService;
+            _reCAPTCHAv3Service = reCAPTCHAv3Service;
         }
 
         //Register User
-        public async Task<ResponseManager> RegisterUser(RegisterUser model)
+        public async Task<ResponseManager> RegisterUser(RegisterUser model, string origin)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(model.captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             //Regex for Password
             string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$";
             if (!Regex.IsMatch(model.Password, pattern))
@@ -84,7 +102,10 @@ namespace Core.Repository
 
                 var confirmUser = await _userManager.FindByEmailAsync(identityUser.Email);
 
-                string url = $"{_config["AppUrl"]}/api/auth/ConfirmEmail?userid={confirmUser.Id}&token={validEmailToken}";
+                // string url = $"{_config["AppUrl"]}/auth/confirm-email?userId={confirmUser.Id}&token={validEmailToken}";
+                string url = await GetEmailVerificationUriAsync(confirmUser, origin, "auth/confirm-email");
+                url = QueryHelpers.AddQueryString(url, "userId", confirmUser.Id.ToString());
+                url = QueryHelpers.AddQueryString(url, "token", validEmailToken);
 
                 var mailContent = new MailRequest
                 {
@@ -105,14 +126,27 @@ namespace Core.Repository
             return new ResponseManager
             {
                 IsSuccess = false,
-                Message = "User Email Already Registered, Try Login(/api/auth/Authenticate)",
+                Message = "User Email Already Registered, Try to login again!",
             };
 
         }
 
         //Login User
-        public async Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile)
+        public async Task<ResponseManager> LoginUser(AuthUser model, string deviceId, bool isMobile, string ipAddress)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(model.captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
@@ -170,7 +204,7 @@ namespace Core.Repository
 
                 var userRole = new List<string>(await _userManager.GetRolesAsync(user));
                 //Generate Token JWT
-                var Token = await _tokenService.GenerateToken(user, deviceId, isMobile);
+                var Token = await _tokenService.GenerateToken(user, deviceId, isMobile, ipAddress);
 
                 return new ResponseManager
                 {
@@ -214,48 +248,68 @@ namespace Core.Repository
         // ConfirmEmail
         public async Task<ResponseManager> ConfirmEmail(Guid userId, string token)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
+            try
             {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    return new ResponseManager
+                    {
+                        IsSuccess = false,
+                        Message = "User not found",
+                    };
+                }
+
+                var decodedToken = WebEncoders.Base64UrlDecode(token);
+                // Convert back to string
+                var normalToken = Encoding.UTF8.GetString(decodedToken);
+                // Unescape to get the original email token
+                normalToken = Uri.UnescapeDataString(normalToken);
+
+                // check if the token is valid
+                var result = await _userManager.ConfirmEmailAsync(user, normalToken);
+
+                if (result.Succeeded)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+
+                    return new ResponseManager
+                    {
+                        Message = "Email confirmed successfully!",
+                        IsSuccess = true,
+                    };
+                }
+
                 return new ResponseManager
                 {
                     IsSuccess = false,
-                    Message = "User not found",
+                    Message = "Email did not confirm",
+                    //Errors = result.Errors.ToArray()
                 };
             }
-
-            var decodedToken = WebEncoders.Base64UrlDecode(token);
-            // Convert back to string
-            var normalToken = Encoding.UTF8.GetString(decodedToken);
-            // Unescape to get the original email token
-            normalToken = Uri.UnescapeDataString(normalToken);
-
-            // check if the token is valid
-            var result = await _userManager.ConfirmEmailAsync(user, normalToken);
-
-            if (result.Succeeded)
+            catch (Exception ex)
             {
-                user.EmailConfirmed = true;
-                await _userManager.UpdateAsync(user);
-
-                return new ResponseManager
-                {
-                    Message = "Email confirmed successfully!",
-                    IsSuccess = true,
-                };
+                throw new Exception(ex.Message);
             }
-
-            return new ResponseManager
-            {
-                IsSuccess = false,
-                Message = "Email did not confirm",
-                //Errors = result.Errors.ToArray()
-            };
         }
 
         //Forget Password
-        public async Task<ResponseManager> ForgetPassword(string email)
+        public async Task<ResponseManager> ForgetPassword(string email, string captchaToken, string origin)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return new ResponseManager
@@ -268,7 +322,12 @@ namespace Core.Repository
             var encodedToken = Encoding.UTF8.GetBytes(token);
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
             string pass = "Tester@123";
-            string url = $"{_config["AppUrl"]}/api/Auth/ResetPassword?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
+            // string url = $"{_config["AppUrl"]}/auth/reset-password?Email={email}&Token={validToken}&NewPassword={pass}&ConfirmPassword={pass}";
+            string url = await GetEmailVerificationUriAsync(user, origin, "auth/reset-password");
+            url = QueryHelpers.AddQueryString(url, "Email", email);
+            url = QueryHelpers.AddQueryString(url, "Token", validToken);
+            url = QueryHelpers.AddQueryString(url, "NewPassword", pass);
+            url = QueryHelpers.AddQueryString(url, "ConfirmPassword", pass);
 
             var mailContent = new MailRequest
             {
@@ -290,6 +349,19 @@ namespace Core.Repository
         //Reset Password
         public async Task<ResponseManager> ResetPassword(ResetPasswordModel model)
         {
+            try
+            {
+                var res = await _reCAPTCHAv3Service.Verify(model.captchaToken);
+                if (!res.success)
+                {
+                    throw new UnauthorizedException("reCAPTCHA verification failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedException(ex.Message);
+            }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
                 return new ResponseManager
@@ -323,6 +395,14 @@ namespace Core.Repository
                 IsSuccess = false,
                 Errors = result.Errors.Select(e => e.Description),
             };
+        }
+
+        private async Task<string> GetEmailVerificationUriAsync(AppUser user, string origin, string route)
+        {
+            string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var endpointUri = new Uri(string.Concat($"{origin}/", route));
+            return endpointUri.ToString();
         }
 
         // RemoveUnicode
