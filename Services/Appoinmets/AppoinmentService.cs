@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using BusinessObject.Models;
+using DAO.Data;
 using DAO.Requests;
 using Repository.Appointments;
 using Repository.Clinics;
@@ -51,6 +52,29 @@ namespace Services.Appoinmets
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request)
         {
             return _AppoinsRepository.CreateAppointmentForPeriodic(request);
+        }
+
+        public AppointmentData GetAppointmentForCreateDentalByID(Guid id)
+        {
+            var appointment = _AppoinsRepository.GetAppointmentForCreateDentalByID(id);
+            if(appointment != null)
+            {
+                return new AppointmentData
+                {
+                    clinic = appointment.Clinic.Address,
+                    date = appointment.Date,
+                    dentist = appointment.Dentist.FullName,
+                    duration = appointment.duration,
+                    patient = appointment.Patient.FullName,
+                    status = appointment.Status,
+                    timeSlot = appointment.TimeSlot,
+                    type = appointment.Type
+                };
+            }
+            else
+            {
+                throw new Exception();
+            }
         }
     }
 }

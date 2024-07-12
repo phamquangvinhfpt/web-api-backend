@@ -10,6 +10,7 @@ namespace Core.Models
         public int TotalRecords { get; set; }
         public Uri NextPage { get; set; }
         public Uri PreviousPage { get; set; }
+        public Uri CurrentPage { get; set; }
 
         public PagedResponse(T data, int pageNumber, int pageSize)
         {

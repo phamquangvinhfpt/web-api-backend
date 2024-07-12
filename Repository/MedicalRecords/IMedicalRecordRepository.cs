@@ -9,7 +9,7 @@ namespace Repository.MedicalRecords
 {
     public interface IMedicalRecordRepository
     {
-        public void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID);
+        public void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID, Guid userID);
         public MedicalRecord GetMedicalRecordByDentalID(Guid dentalID);
     }
 }

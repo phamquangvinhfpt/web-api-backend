@@ -6,7 +6,7 @@ namespace Core.Services
 {
     public interface IUserService
     {
-        Task<ResponseManager> GetUsers();
+        Task<List<UserDetailsDto>> GetUsers();
 
         Task<ResponseManager> GetUserbyId(Guid id);
 

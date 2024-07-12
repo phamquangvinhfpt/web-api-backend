@@ -9,7 +9,7 @@ namespace Repository.Prescriptions
 {
     public interface IPrescriptionRepository
     {
-        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID);
+        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID);
         public List<Prescription> GetPrescriptionsByDentalID(Guid dentalID);
     }
 }

@@ -1,8 +1,10 @@
 using Core.Infrastructure;
+using Core.Infrastructure.Notifications;
 using Hangfire;
 using Repository;
 using Serilog;
 using Services.Dentist;
+using init = Core.Infrastructure.Startup;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
@@ -27,7 +29,7 @@ try
     builder.Services.AddScoped<IDentistService, DentistService>();
     builder.Services.AddScoped<IDentistRepository, DentistRepo>();
     var app = builder.Build();
-    Startup.Initialize(app.Services, app.Configuration);
+    init.Initialize(app.Services, app.Configuration);
 
     if (app.Environment.IsDevelopment())
     {
@@ -40,6 +42,7 @@ try
     }
     app.UseInfrastructure();
     app.MapControllers();
+    app.MapNotifications();
     app.MapHangfireDashboard();
     app.Run();
 }

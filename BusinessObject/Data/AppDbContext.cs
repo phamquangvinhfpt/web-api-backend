@@ -28,6 +28,7 @@ namespace BusinessObject.Data
         public DbSet<FollowUpAppointment> FollowUpAppointments { get; set; }
         public DbSet<DentistDetail> DentistDetails { get; set; }
         public DbSet<Audit> AuditLogs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -145,6 +146,23 @@ namespace BusinessObject.Data
                 .WithOne(d => d.Dentist)
                 .HasForeignKey<DentistDetail>(d => d.DentistId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Notification>()
+                .Property(b => b.Title)
+                .HasMaxLength(256);
+            builder.Entity<Notification>()
+                .Property(b => b.Message)
+                .HasMaxLength(2048);
+            builder.Entity<Notification>()
+                .Property(b => b.Label)
+                .HasConversion<string>()
+                .HasColumnType("varchar(50)");
+            builder.Entity<Notification>()
+            .Property(b => b.IsRead)
+            .HasDefaultValue(false);
+            builder.Entity<Notification>()
+                .Property(b => b.Url)
+                .HasMaxLength(2048);
 
             foreach (var entityType in builder.Model.GetEntityTypes())
             {

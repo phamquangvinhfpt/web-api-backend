@@ -36,7 +36,7 @@ namespace DAO.AppointmentsDAO
         // kham 1 lan
         public Appointment CreateAppointment(AppointmentRequest request)
         {
-            
+
             var appointment = new Appointment
             {
                 PatientID = request.PatientID,
@@ -44,6 +44,7 @@ namespace DAO.AppointmentsDAO
                 ClinicID = request.ClinicID,
                 TimeSlot = request.TimeSlot,
                 Date = request.Date,
+                duration = 0,
                 Type = request.Type,
                 Status = BusinessObject.Enums.AppointmentStatus.Pending,
                 CreatedAt = DateTime.Now,
@@ -83,6 +84,10 @@ namespace DAO.AppointmentsDAO
         public Appointment GetAppointmentByID(Guid id)
         {
             return _context.Appointments.Include("Patient").Include("Dentist").FirstOrDefault(p => p.Id == id);
+        }
+        public Appointment GetAppointmentForCreateDentalByID(Guid id)
+        {
+            return _context.Appointments.Include("Patient").Include("Dentist").Include("Clinic").FirstOrDefault(p => p.Id == id);
         }
 
         public Appointment GetAppoitmentAndDental(Guid id)

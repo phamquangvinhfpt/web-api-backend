@@ -29,10 +29,9 @@ namespace DAO.RecordDAO
 
         public List<DentalRecord> getAllRecord(){
             return _context.DentalRecords
+                .Include(p => p.Appointment.Dentist)
+                .Include(p => p.Appointment.Patient)
              .Include("Appointment")
-             .Include("Prescriptions")
-             .Include("MedicalRecord")
-             .Include("FollowUpAppointments")
             .ToList();
         }
         public DentalRecord GetRecordByID(Guid id){
@@ -58,7 +57,7 @@ namespace DAO.RecordDAO
             }
             return existingRecord;
         }
-        public DentalRecord CreateDentalRecord(Guid appointmentID)
+        public DentalRecord CreateDentalRecord(Guid appointmentID, Guid userID)
         {
             DentalRecord dentalRecord = new DentalRecord
             {
@@ -69,7 +68,7 @@ namespace DAO.RecordDAO
             try
             {
                 var dtr = _context.DentalRecords.Add(dentalRecord);
-                _context.SaveChanges();
+                _context.SaveChangesAsync(userID);
                 return dtr.Entity;
             }catch(Exception ex)
             {

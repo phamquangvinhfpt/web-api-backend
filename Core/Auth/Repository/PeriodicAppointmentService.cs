@@ -13,6 +13,7 @@ using Core.Helpers;
 using NuGet.Protocol.Core.Types;
 using Repository.FollowUpAppointments;
 using Repository.RecordRepositories;
+using DAO.Data;
 namespace Core.Auth.Repository
 
 {
@@ -106,6 +107,11 @@ namespace Core.Auth.Repository
             };
             // Gửi email bằng cách sử dụng dịch vụ gửi mail
              _mailService.SendEmailAsync(mailContent);
+        }
+
+        public AppointmentData GetAppointmentForCreateDentalByID(Guid id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

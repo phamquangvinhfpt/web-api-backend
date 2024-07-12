@@ -1,0 +1,28 @@
+[
+    {
+      "Title": "Wellcome to Dr Dentist",
+      "Label": "Information",
+      "Message": "This is the first page of the Dr Dentist application. You can navigate through the application using the menu on the left. Enjoy your experience!"
+    },
+    {
+      "Title": "Success notification",
+      "Label": "Success",
+      "Message": "This is message to test success notification."
+    },
+    {
+      "Title": "Error notification",
+      "Label": "Error",
+      "Message": "This is message to test error notification."
+    },
+    {
+      "Title": "Warning notification",
+      "Label": "Warning",
+      "Message": "This is message to test warning notification."
+    },
+    {
+      "Title": "Reminder notification",
+      "Label": "Reminder",
+      "Message": "This is message to test reminder notification.",
+      "Url": "http://www.google.com"
+    }
+  ]
