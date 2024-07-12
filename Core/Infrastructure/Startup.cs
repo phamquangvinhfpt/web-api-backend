@@ -33,6 +33,10 @@ using Core.Infrastructure.FileStorage;
 using Microsoft.Extensions.FileProviders;
 using Core.Infrastructure.Validator;
 using Core.Infrastructure.SpeedSMS;
+using Core.Infrastructure.Notifications;
+using Microsoft.Build.Framework;
+using Microsoft.Extensions.Options;
+using SendGrid.Helpers.Errors.Model;
 
 namespace Core.Infrastructure
 {
@@ -64,6 +68,33 @@ namespace Core.Infrastructure
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"])),
                     ClockSkew = TimeSpan.Zero,
                 };
+                option.Events = new JwtBearerEvents
+                {
+                    OnChallenge = context =>
+                    {
+                        context.HandleResponse();
+                        if (!context.Response.HasStarted)
+                        {
+                            throw new UnauthorizedException("Authentication Failed.");
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnForbidden = _ => throw new ForbiddenException("You are not authorized to access this resource."),
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            context.HttpContext.Request.Path.StartsWithSegments("/notifications"))
+                        {
+                            // Read the token out of the query string
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             services.AddAuthorization(options =>
@@ -86,6 +117,8 @@ namespace Core.Infrastructure
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
+            .UseFilter(new JobFilter(services.BuildServiceProvider()))
+            .UseFilter(new LogJobFilter())
             .UseSqlServerStorage(config.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
             {
                 CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
@@ -155,13 +188,13 @@ namespace Core.Infrastructure
                     builder => builder
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .WithOrigins("https://drdentist.me", "http://localhost:5173", "https://localhost:7124")
+                        .WithOrigins("https://drdentist.me", "http://localhost:5173", "https://localhost:7124", "http://localhost:*", "https://localhost")
                         .AllowCredentials());
             });
 
             services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
-
+            services.AddNotifications(config);
             services.Configure<MailSettings>(config.GetSection("MailSettings"));
             services.AddScoped<IDentistRepository, DentistRepo>();
             services.AddScoped<IDentistService, DentistService>();
@@ -180,6 +213,10 @@ namespace Core.Infrastructure
             services.AddScoped<IAppoinmentService, PeriodicAppointmentService>();
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<ISerializerService, SerializerService>();
+            services.AddScoped<INotificationSender, NotificationSender>();
+            services.AddScoped<IJobService, JobService>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<TokenCleanupJob>();
             services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();
@@ -204,7 +241,7 @@ namespace Core.Infrastructure
             });
             RecurringJob.AddOrUpdate<TokenCleanupJob>("CleanupTokens", job => job.CleanupTokens(), Cron.Daily);
             RecurringJob.AddOrUpdate<RemindFollowUpAppointment>("RemindFolowAppointment", job => job.RemindFollowUpAppointments(), Cron.Daily);
-            RecurringJob.AddOrUpdate<PeriodicAppointmentSending>("PeriodicSendingMail", job => job.SendPeriodicAppointments(), Cron.Minutely);
+            RecurringJob.AddOrUpdate<PeriodicAppointmentSending>("PeriodicSendingMail", job => job.SendPeriodicAppointments(), Cron.Daily);
             app.UseMiddleware<TokenRevokedMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseCors("CorsPolicy");

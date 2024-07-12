@@ -1,12 +1,16 @@
+using System.Linq.Expressions;
 using AutoMapper;
-using Core.Auth;
+using BusinessObject.Models;
+using Core.Auth.Permissions;
 using Core.Auth.Services;
+using Core.Helpers;
+using Core.Models;
 using Core.Models.Personal;
 using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using Action = Core.Auth.Permissions.Action;
 namespace Core.Controllers
 {
     [Route("api/users")]
@@ -18,13 +22,15 @@ namespace Core.Controllers
         private readonly IMapper _mapper;
         private readonly IAuthService _auth;
         private readonly ICurrentUserService _currentUser;
+        private readonly IUriService _uriService;
 
-        public UserController(IUserService userService, IMapper mapper, IAuthService authService, ICurrentUserService currentUserService)
+        public UserController(IUserService userService, IMapper mapper, IAuthService authService, ICurrentUserService currentUserService, IUriService uriService)
         {
             _userService = userService;
             _mapper = mapper;
             _auth = authService;
             _currentUser = currentUserService;
+            _uriService = uriService;
         }
 
         [HttpGet("resend-phone-number-code")]
@@ -44,5 +50,57 @@ namespace Core.Controllers
 
             return _userService.ConfirmPhoneNumberAsync(userId, code);
         }
+
+        [HttpPost("get-all-users")]
+        [MustHavePermission(Action.View, Resource.Users)]
+        public async Task<PagedResponse<List<UserDetailsDto>>> GetAllUsers(GetListUsersRequest request)
+        {
+            try
+            {
+                var route = Request.Path.Value;
+                var users = await _userService.GetUsers();
+                var validFilter = new PaginationFilter(request.PageNumber, request.PageSize, request.SortBy, request.SortOrder, request.SearchTerm, request.FilterBy, request.FilterValue);
+
+                if (!string.IsNullOrEmpty(validFilter.SearchTerm))
+                {
+                    users = users.Where(u =>
+                        u.FullName.Contains(validFilter.SearchTerm) ||
+                        u.Email.Contains(validFilter.SearchTerm) ||
+                        u.PhoneNumber.Contains(validFilter.SearchTerm)).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(validFilter.FilterBy) && !string.IsNullOrEmpty(validFilter.FilterValue))
+                {
+                    var parameter = Expression.Parameter(typeof(UserDetailsDto), "x");
+                    var property = Expression.Property(parameter, validFilter.FilterBy);
+                    var constant = Expression.Constant(validFilter.FilterValue);
+                    var equality = Expression.Equal(property, constant);
+                    var lambda = Expression.Lambda<Func<UserDetailsDto, bool>>(equality, parameter);
+                    users = users.Where(lambda.Compile()).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(validFilter.SortBy))
+                {
+                    var parameter = Expression.Parameter(typeof(UserDetailsDto), "x");
+                    var property = Expression.Property(parameter, validFilter.SortBy);
+                    var lambda = Expression.Lambda(property, parameter);
+                    var methodName = validFilter.SortOrder.ToLower() == "desc" ? "OrderByDescending" : "OrderBy";
+                    var resultExpression = Expression.Call(typeof(Queryable), methodName,
+                        new Type[] { typeof(UserDetailsDto), property.Type },
+                        users.AsQueryable().Expression, Expression.Quote(lambda));
+                    users = users.AsQueryable().Provider.CreateQuery<UserDetailsDto>(resultExpression).ToList();
+                }
+
+                var totalRecords = users.Count;
+                var pagedData = users.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToList();
+                var pagedResponse = PaginationHelper.CreatePagedResponse(pagedData, request, totalRecords, _uriService, route);
+                return pagedResponse;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
     }
 }

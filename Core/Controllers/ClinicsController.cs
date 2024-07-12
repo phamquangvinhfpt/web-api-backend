@@ -117,7 +117,7 @@ namespace Core.Controllers
                     Name = clinicsmodel.Name,
                     OwnerID = clinicsmodel.OwnerID,
                     Address = clinicsmodel.Address,
-                    Verified = clinicsmodel.Verified
+                    Verified = false
                 };
                 _clinicsService.AddClinics(entity, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
                 return CreatedAtAction(nameof(GetClinicsById), new { id = entity.Id }, entity);
@@ -142,7 +142,6 @@ namespace Core.Controllers
                 existingClinic.Name = clinicsModel.Name;
                 existingClinic.OwnerID = clinicsModel.OwnerID;
                 existingClinic.Address = clinicsModel.Address;
-                existingClinic.Verified = clinicsModel.Verified;
 
                 _clinicsService.UpdateClinics(existingClinic);
                 return NoContent();

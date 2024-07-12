@@ -46,7 +46,7 @@ namespace DAO.FollowUpAppoinmentsDAO
                 throw new Exception(ex.Message);
             }
         }
-        public void CreateFollowAppointments(FollowUpAppointmentRequest requests, Guid dentalID)
+        public void CreateFollowAppointments(FollowUpAppointmentRequest requests, Guid dentalID, Guid userID)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace DAO.FollowUpAppoinmentsDAO
                     Reason = requests.Reason,
                     IsSuccess = false
                 });
-                _context.SaveChanges();
+                _context.SaveChangesAsync(userID);
             }catch (Exception ex)
             {
                 throw new Exception(ex.Message);

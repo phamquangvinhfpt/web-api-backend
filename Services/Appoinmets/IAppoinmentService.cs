@@ -1,4 +1,5 @@
 ﻿using BusinessObject.Models;
+using DAO.Data;
 using DAO.Requests;
 using System;
 using System.Collections.Generic;
@@ -19,5 +20,6 @@ namespace Services.Appoinmets
         Task PeriodicAppointment();
         public void UpdateAppointmentDate(Guid Id, DateTime date);
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request);
+        public AppointmentData GetAppointmentForCreateDentalByID(Guid id);
     }
 }

@@ -24,5 +24,7 @@ namespace Repository.Appointments
         public List<Appointment> GetAllByStatusAndType(AppointmentStatus status, AppointmentType type) => AppointmentDAO.Instance.GetAllByStatusAndType(status, type);
         public void UpdateAppointmentDate(Guid Id, DateTime date) => AppointmentDAO.Instance.UpdateAppointmentDate(Id, date);
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request) => AppointmentDAO.Instance.CreateAppointmentForPeriodic(request);
+
+        public Appointment GetAppointmentForCreateDentalByID(Guid id) => AppointmentDAO.Instance.GetAppointmentForCreateDentalByID(id);
     }
 }

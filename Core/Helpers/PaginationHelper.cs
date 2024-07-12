@@ -18,6 +18,7 @@ namespace Core.Helpers
                 validFilter.PageNumber - 1 >= 1 && validFilter.PageNumber <= roundedTotalPages
                 ? uriService.GetPageUri(new PaginationFilter(validFilter.PageNumber - 1, validFilter.PageSize), route)
                 : null;
+            respose.CurrentPage = uriService.GetPageUri(new PaginationFilter(validFilter.PageNumber, validFilter.PageSize), route);
             respose.FirstPage = uriService.GetPageUri(new PaginationFilter(1, validFilter.PageSize), route);
             respose.LastPage = uriService.GetPageUri(new PaginationFilter(roundedTotalPages, validFilter.PageSize), route);
             respose.TotalPages = roundedTotalPages;

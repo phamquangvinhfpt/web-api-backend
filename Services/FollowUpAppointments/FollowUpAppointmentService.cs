@@ -19,9 +19,9 @@ namespace Services.FollowUpAppointments
         {
             repository = new FollowUpAppointmentRepository();
         }
-        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID)
+        public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID, Guid userID)
         {
-            repository.CreateFollowAppointments(request, dentalID);
+            repository.CreateFollowAppointments(request, dentalID, userID);
         }
 
         public List<FollowUpAppointment> GetAllIsFalse()

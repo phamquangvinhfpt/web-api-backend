@@ -35,6 +35,7 @@ namespace Core.Auth.Permissions
         public const string Prescriptions = nameof(Prescriptions);
         public const string Appointments = nameof(Appointments);
         public const string Files = nameof(Files);
+        public const string AuditLogs = nameof(AuditLogs);
     }
 
     public static class Permissions
@@ -45,10 +46,10 @@ namespace Core.Auth.Permissions
             new("View Hangfire", Action.View, Resource.Hangfire),
 
             // USERS
-            new("View Users", Action.View, Resource.Users),
+            new("View Users", Action.View, Resource.Users, Roles.SuperAdmin),
             new("Search Users", Action.Search, Resource.Users, Roles.SuperAdmin),
-            new("Create Users", Action.Create, Resource.Users),
-            new("Update Users", Action.Update, Resource.Users),
+            new("Create Users", Action.Create, Resource.Users, Roles.SuperAdmin),
+            new("Update Users", Action.Update, Resource.Users, Roles.SuperAdmin),
             new("Delete Users", Action.Delete, Resource.Users, Roles.SuperAdmin),
             new("Export Users", Action.Export, Resource.Users, Roles.SuperAdmin),
 
@@ -115,7 +116,10 @@ namespace Core.Auth.Permissions
             new("Delete Appointments", Action.Delete, Resource.Appointments, Roles.Dentist),
 
             // FILES
-            new("Upload files", Action.Upload, Resource.Files)
+            new("Upload files", Action.Upload, Resource.Files),
+
+            // AUDIT LOGS
+            new("View AuditLogs", Action.View, Resource.AuditLogs, Roles.SuperAdmin),
         };
 
         public static IReadOnlyList<Permission> All { get; } = new ReadOnlyCollection<Permission>(_all);

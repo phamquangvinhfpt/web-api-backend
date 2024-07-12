@@ -10,6 +10,7 @@ namespace Repository.Appointments
 {
     public interface IAppointmentRepository
     {
+        public Appointment GetAppointmentForCreateDentalByID(Guid id);
         public Appointment GetAppointmentByID(Guid id);
         public Appointment CreateAppointment(AppointmentRequest request);
         public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status);

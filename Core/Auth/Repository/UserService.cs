@@ -1,5 +1,4 @@
 using System.Data;
-using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using AutoMapper;
@@ -7,14 +6,17 @@ using BusinessObject.Data;
 using BusinessObject.Models;
 using Core.Helpers;
 using Core.Infrastructure.FileStorage;
+using Core.Infrastructure.Notifications;
 using Core.Infrastructure.SpeedSMS;
 using Core.Models;
 using Core.Models.Personal;
 using Core.Models.UserModels;
 using Core.Services;
+using BusinessObject.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using static BusinessObject.Enums.BasicNotification;
 
 namespace Core.Repository
 {
@@ -27,6 +29,7 @@ namespace Core.Repository
         private readonly IMailService _mailService;
         private readonly IFileStorageService _fileStorage;
         private readonly ISpeedSMSService _speedSMSService;
+        private readonly INotificationService _notificationService;
         private readonly ILogger<UserService> _logger;
         private readonly IMapper _mapper;
 
@@ -36,6 +39,7 @@ namespace Core.Repository
                            IMailService mailService,
                            IFileStorageService fileStorage,
                            ISpeedSMSService speedSMSService,
+                           INotificationService notificationService,
                            ILogger<UserService> logger,
                            IMapper mapper,
                            IConfiguration config)
@@ -47,19 +51,23 @@ namespace Core.Repository
             _mailService = mailService;
             _fileStorage = fileStorage;
             _speedSMSService = speedSMSService;
+            _notificationService = notificationService;
             _logger = logger;
             _mapper = mapper;
         }
 
         //All Users
-        public async Task<ResponseManager> GetUsers()
+        public async Task<List<UserDetailsDto>> GetUsers()
         {
-            var userAll = await _userManager.Users.ToListAsync();
-            return new ResponseManager
+            var users = _userManager.Users.AsNoTracking().AsQueryable();
+            var adminRoleId = _roleManager.Roles.FirstOrDefault(r => r.Name == "SuperAdmin")?.Id;
+            if (adminRoleId != null)
             {
-                IsSuccess = true,
-                Message = userAll,
-            };
+                var adminUsers = await _userManager.GetUsersInRoleAsync("SuperAdmin");
+                users = users.Where(u => !adminUsers.Contains(u));
+            }
+            var usersDto = _mapper.Map<List<UserDetailsDto>>(users);
+            return usersDto;
         }
 
         //GetUserByID
@@ -110,7 +118,13 @@ namespace Core.Repository
                 {
                     var result = await _userManager.CreateAsync(identityUser, model.Password);
                     await _userManager.AddToRoleAsync(identityUser, Convert.ToString("Customer"));
-
+                    BasicNotification notification = new BasicNotification
+                    {
+                        Title = "Wellcome to Dr Dentist",
+                        Label = LabelType.Information,
+                        Message = "This is the first page of the Dr Dentist application. You can navigate through the application using the menu on the left. Enjoy your experience!"
+                    };
+                    await _notificationService.SendNotificationToUser(identityUser.Id.ToString(), notification, null, CancellationToken.None);
                     return new ResponseManager
                     {
                         IsSuccess = true,
