@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Azure.Core;
+using Microsoft.EntityFrameworkCore;
 using BusinessObject.Data;
 
-using Microsoft.EntityFrameworkCore;
 namespace DAO.ManageDentist
 {
     public class DentistDAO
@@ -28,38 +27,91 @@ namespace DAO.ManageDentist
                 return _instance;
             }
         }
-         public async Task<IEnumerable<BusinessObject.Models.DentistDetail>> GetAllDentists()
+
+        public async Task<IEnumerable<BusinessObject.Models.DentistDetail>> GetAllDentists()
         {
-            return await _context.DentistDetails.ToListAsync();
+            try
+            {
+                return await _context.DentistDetails.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving all dentists: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<BusinessObject.Models.DentistDetail> GetDentistById(Guid id)
         {
-            return await _context.DentistDetails.FindAsync(id);
+            try
+            {
+                return await _context.DentistDetails.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving dentist by ID {id}: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task CreateDentist(BusinessObject.Models.DentistDetail dentist)
         {
-            _context.DentistDetails.Add(dentist);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.DentistDetails.Add(dentist);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating dentist: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task UpdateDentist(BusinessObject.Models.DentistDetail dentist)
         {
-            _context.Entry(dentist).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Entry(dentist).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating dentist: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task DeleteDentist(Guid id)
         {
-            var dentist = await _context.DentistDetails.FindAsync(id);
-            _context.DentistDetails.Remove(dentist);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var dentist = await _context.DentistDetails.FindAsync(id);
+                if (dentist == null)
+                {
+                    throw new KeyNotFoundException($"Dentist with ID {id} not found");
+                }
+                _context.DentistDetails.Remove(dentist);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting dentist with ID {id}: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<bool> DentistExists(Guid id)
         {
-            return await _context.DentistDetails.AnyAsync(e => e.DentistId == id);
+            try
+            {
+                return await _context.DentistDetails.AnyAsync(e => e.DentistId == id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking if dentist exists: {ex.Message}");
+                throw;
+            }
         }
     }
 }
