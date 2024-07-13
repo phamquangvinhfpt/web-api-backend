@@ -30,7 +30,7 @@ namespace Core.Enums
             var adminUserName = "admin";
             var adminPassword = "123Pa$$word!";
             var image_url = "Files/Image/jpg/ad.jpg";
-
+            
             if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
                 var admin = new AppUser
