@@ -1,4 +1,5 @@
 ﻿using BusinessObject.Models;
+using Core.Auth.Permissions;
 using Core.Auth.Services;
 using Core.Helpers;
 using Core.Models;
@@ -17,6 +18,7 @@ using Services.RecordServices;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Policy;
+using Action = Core.Auth.Permissions.Action;
 
 namespace Core.Controllers
 {
@@ -42,6 +44,7 @@ namespace Core.Controllers
         }
 
         [HttpGet("getRecords")]
+        [MustHavePermission(Action.View, Resource.DentalRecords)]
         public async Task<IActionResult> GetAllRecords([FromQuery] PaginationFilter filter)
         {
             try
@@ -101,6 +104,7 @@ namespace Core.Controllers
                 });
             }
         }
+
         [HttpPost("getAppointmentForCreate")]
         public IActionResult GetAppointmentForCreateDentalByID([FromBody] GetByIDRequest request)
         {
