@@ -16,6 +16,12 @@ namespace Repository.RecordRepositories
 
         public DentalRecord GetByAppointment(Guid appointmentId) => DentalRecordDAO.Instance.GetByAppointment(appointmentId);
 
+        public List<DentalRecord> GetRecordByClinicOwner(Guid ownerID) => DentalRecordDAO.Instance.GetRecordByClinicOwner(ownerID);
+
+        public List<DentalRecord> GetRecordByCustomer(Guid customerID) => DentalRecordDAO.Instance.GetRecordByCustomer(customerID);
+
+        public List<DentalRecord> GetRecordByDentist(Guid dentisID) => DentalRecordDAO.Instance.GetRecordByDentist(dentisID);
+
         public DentalRecord GetRecordByID(Guid id) => DentalRecordDAO.Instance.GetRecordByID(id);
     }
 }

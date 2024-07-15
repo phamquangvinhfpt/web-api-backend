@@ -76,6 +76,95 @@ namespace Services.RecordServices
 
         public DentalRecord GetByAppointment(Guid appointmentId) => dentalRecordRepository.GetByAppointment(appointmentId);
 
+        public List<DentalRecordData> GetRecordByClinicOwner(Guid ownerID)
+        {
+            var list = dentalRecordRepository.GetRecordByClinicOwner(ownerID);
+            if(list.Count == 0)
+            {
+                return null;
+            }
+            List<DentalRecordData> result = new List<DentalRecordData>();
+            foreach (var record in list)
+            {
+                result.Add(new DentalRecordData()
+                {
+                    patient = record.Appointment.Patient.FullName,
+                    dentist = record.Appointment.Dentist.FullName,
+                    appointmentID = record.AppointmentID.ToString(),
+                    date = record.Appointment.Date,
+                    duration = record.Appointment.duration,
+                    status = record.Appointment.Status,
+                    timeSlot = record.Appointment.TimeSlot.ToString(),
+                    type = record.Appointment.Type,
+                    createdAt = record.CreatedAt,
+                    updatedAt = record.UpdatedAt,
+                    id = record.Id.ToString(),
+
+
+                });
+            }
+            return result;
+        }
+
+        public List<DentalRecordData> GetRecordByCustomer(Guid customerID)
+        {
+            var list = dentalRecordRepository.GetRecordByCustomer(customerID);
+            if (list.Count == 0)
+            {
+                return null;
+            }
+            List<DentalRecordData> result = new List<DentalRecordData>();
+            foreach (var record in list)
+            {
+                result.Add(new DentalRecordData()
+                {
+                    patient = record.Appointment.Patient.FullName,
+                    dentist = record.Appointment.Dentist.FullName,
+                    appointmentID = record.AppointmentID.ToString(),
+                    date = record.Appointment.Date,
+                    duration = record.Appointment.duration,
+                    status = record.Appointment.Status,
+                    timeSlot = record.Appointment.TimeSlot.ToString(),
+                    type = record.Appointment.Type,
+                    createdAt = record.CreatedAt,
+                    updatedAt = record.UpdatedAt,
+                    id = record.Id.ToString(),
+
+
+                });
+            }
+            return result;
+        }
+        public List<DentalRecordData> GetRecordByDentist(Guid dentisID)
+        {
+            var list = dentalRecordRepository.GetRecordByDentist(dentisID);
+            if (list.Count == 0)
+            {
+                return null;
+            }
+            List<DentalRecordData> result = new List<DentalRecordData>();
+            foreach (var record in list)
+            {
+                result.Add(new DentalRecordData()
+                {
+                    patient = record.Appointment.Patient.FullName,
+                    dentist = record.Appointment.Dentist.FullName,
+                    appointmentID = record.AppointmentID.ToString(),
+                    date = record.Appointment.Date,
+                    duration = record.Appointment.duration,
+                    status = record.Appointment.Status,
+                    timeSlot = record.Appointment.TimeSlot.ToString(),
+                    type = record.Appointment.Type,
+                    createdAt = record.CreatedAt,
+                    updatedAt = record.UpdatedAt,
+                    id = record.Id.ToString(),
+
+
+                });
+            }
+            return result;
+        }
+
         public DentalRecord GetRecordByID(Guid id)
         {
             var dental = dentalRecordRepository.GetRecordByID(id);

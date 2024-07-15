@@ -14,5 +14,8 @@ namespace Services.RecordServices
         public DentalRecord GetRecordByID(Guid id);
         public Appointment CreateDentalRecord(CreateDentalRecordRequest request, Guid userID);
         public DentalRecord GetByAppointment(Guid appointmentId);
+        public List<DentalRecordData> GetRecordByCustomer(Guid customerID);
+        public List<DentalRecordData> GetRecordByDentist(Guid dentisID);
+        public List<DentalRecordData> GetRecordByClinicOwner(Guid ownerID);
     }
 }

@@ -145,7 +145,6 @@ namespace Core.Infrastructure
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
-
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
