@@ -10,7 +10,7 @@ namespace Core.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public class DentistController : ControllerBase
     {
         private readonly IDentistService _dentistService;
