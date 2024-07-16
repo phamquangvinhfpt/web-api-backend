@@ -44,7 +44,7 @@ namespace Services.RecordServices
             medicalRecordRepository.CreateMedicalRecord(request.MedicalRecordRequest, appointment.Id, dental.Id, userID);
             followUpAppointmentRepository.CreateFollowAppointments(request.followUpAppointmentRequest, dental.Id, userID);
             prescriptionRepository.CreatePrescription(request.prescriptionRequests, dental.Id, userID);
-/*            appointmentRepository.ChangeStatusAppointment(appointment.Id, BusinessObject.Enums.AppointmentStatus.Completed);*/
+            appointmentRepository.ChangeStatusAppointment(appointment.Id, BusinessObject.Enums.AppointmentStatus.Completed);
             return appointment;
         }
 

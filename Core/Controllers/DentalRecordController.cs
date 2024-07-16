@@ -84,8 +84,8 @@ namespace Core.Controllers
                 if (!string.IsNullOrEmpty(validFilter.SearchTerm))
                 {
                     dentals = dentals.Where(c =>
-                        c.dentist.ToString().Contains(validFilter.SearchTerm) ||
-                        c.patient.ToString().Contains(validFilter.SearchTerm)
+                        c.dentist.ToString().ToLower().Contains(validFilter.SearchTerm.ToLower()) ||
+                        c.patient.ToString().ToLower().Contains(validFilter.SearchTerm.ToLower())
                         );
                 }
                 if (!string.IsNullOrEmpty(validFilter.FilterBy) && !string.IsNullOrEmpty(validFilter.FilterValue))
