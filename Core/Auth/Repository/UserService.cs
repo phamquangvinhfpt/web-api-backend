@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using static BusinessObject.Enums.BasicNotification;
+using Core.Enums;
+using Core.Auth.Services;
 
 namespace Core.Repository
 {
@@ -32,6 +34,7 @@ namespace Core.Repository
         private readonly INotificationService _notificationService;
         private readonly ILogger<UserService> _logger;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUser;
 
         public UserService(AppDbContext context,
                            UserManager<AppUser> userManager,
@@ -42,7 +45,8 @@ namespace Core.Repository
                            INotificationService notificationService,
                            ILogger<UserService> logger,
                            IMapper mapper,
-                           IConfiguration config)
+                           IConfiguration config,
+                           ICurrentUserService currentUser)
         {
             _context = context;
             _config = config;
@@ -54,12 +58,16 @@ namespace Core.Repository
             _notificationService = notificationService;
             _logger = logger;
             _mapper = mapper;
+            _currentUser = currentUser;
         }
 
         //All Users
         public async Task<List<UserDetailsDto>> GetUsers()
         {
-            var users = _userManager.Users.AsNoTracking().AsQueryable();
+            var users = _userManager.Users
+                .AsNoTracking()
+                .Where(u => u.EmailConfirmed)
+                .AsQueryable();
             var adminRoleId = _roleManager.Roles.FirstOrDefault(r => r.Name == "SuperAdmin")?.Id;
             if (adminRoleId != null)
             {
@@ -67,7 +75,23 @@ namespace Core.Repository
                 users = users.Where(u => !adminUsers.Contains(u));
             }
             var usersDto = _mapper.Map<List<UserDetailsDto>>(users);
+            foreach (var user in usersDto)
+            {
+                var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+                var userRoles = await _userManager.GetRolesAsync(appUser);
+                user.RoleType = DetermineRoleType(userRoles);
+                user.IsAccountLocked = await _userManager.IsLockedOutAsync(await _userManager.FindByIdAsync(user.Id.ToString()));
+            }
             return usersDto;
+        }
+
+        private Roles DetermineRoleType(IList<string> userRoles)
+        {
+            if (userRoles.Contains("SuperAdmin")) return Roles.SuperAdmin;
+            if (userRoles.Contains("ClinicOwner")) return Roles.ClinicOwner;
+            if (userRoles.Contains("Dentist")) return Roles.Dentist;
+            if (userRoles.Contains("Customer")) return Roles.Customer;
+            return Roles.Guest;
         }
 
         //GetUserByID
@@ -210,26 +234,41 @@ namespace Core.Repository
         }
 
         //Delete User
-        public async Task<ResponseManager> DeleteUser(Guid id)
+        public async Task<Response<UserDetailsDto>> DeleteUser(Guid id)
         {
-            AppUser user = await _userManager.FindByIdAsync(id.ToString());
-            try
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user != null)
             {
-                await _userManager.DeleteAsync(user);
-
-                return new ResponseManager
+                try
                 {
-                    IsSuccess = true,
-                    Message = " User " + id + " removed successfully!",
-                };
+                    await _userManager.DeleteAsync(user);
+                    var userTokens = await _context.Tokens.Where(t => t.UserId == id).ToListAsync();
+                    _context.Tokens.RemoveRange(userTokens);
+                    var currentUser = _currentUser.GetCurrentUserId();
+                    await _context.SaveChangesAsync(Guid.Parse(currentUser));
+                    return new Response<UserDetailsDto>
+                    {
+                        Succeeded = true,
+                        Message = "User deleted successfully!",
+                        Data = _mapper.Map<UserDetailsDto>(user),
+                    };
+                }
+                catch (Exception ex)
+                {
+                    return new Response<UserDetailsDto>
+                    {
+                        Succeeded = false,
+                        Message = ex.Message,
+                        Data = null,
+                    };
+                }
             }
-            catch
+            return new Response<UserDetailsDto>
             {
-                _logger.LogError("User not found!");
-                throw;
-            }
-            return null;
-
+                Succeeded = false,
+                Message = "User not found!",
+                Data = null,
+            };
         }
 
         //User Exist

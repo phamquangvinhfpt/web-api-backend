@@ -1,4 +1,5 @@
 using BusinessObject.Enums;
+using Core.Enums;
 
 namespace Core.Models.Personal
 {
@@ -24,5 +25,7 @@ namespace Core.Models.Personal
 
         public bool? PhoneNumberConfirmed { get; set; }
         public string? ImageUrl { get; set; }
+        public Roles? RoleType { get; set; }
+        public bool? IsAccountLocked { get; set; }
     }
 }

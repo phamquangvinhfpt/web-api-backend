@@ -14,10 +14,10 @@ namespace Core.Services
 
         Task<Response<UserDetailsDto>> UpdateUser(Guid id, UpdateUserRequest user);
 
-        Task<ResponseManager> DeleteUser(Guid id);
+        Task<Response<UserDetailsDto>> DeleteUser(Guid id);
 
         public bool IsExist(Guid id);
-        
+
         Task UpdateAvatarAsync(UpdateAvatarRequest request, CancellationToken cancellationToken);
 
         Task<UserDetailsDto> GetAsync(Guid userId, CancellationToken cancellationToken);
