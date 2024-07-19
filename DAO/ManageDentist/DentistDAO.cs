@@ -1,10 +1,10 @@
-﻿using System;
+﻿// DAO/ManageDentist/DentistDAO.cs
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using BusinessObject.Data;
+using BusinessObject.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAO.ManageDentist
 {
@@ -32,7 +32,7 @@ namespace DAO.ManageDentist
         {
             try
             {
-                return await _context.DentistDetails.ToListAsync();
+                return await _context.DentistDetails.AsNoTracking().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -45,7 +45,7 @@ namespace DAO.ManageDentist
         {
             try
             {
-                return await _context.DentistDetails.FindAsync(id);
+                return await _context.DentistDetails.AsNoTracking().FirstOrDefaultAsync(d => d.DentistId == id);
             }
             catch (Exception ex)
             {
@@ -58,7 +58,15 @@ namespace DAO.ManageDentist
         {
             try
             {
-                _context.DentistDetails.Add(dentist);
+                var existingDentist = await _context.DentistDetails.AsNoTracking().FirstOrDefaultAsync(d => d.DentistId == dentist.DentistId);
+                if (existingDentist == null)
+                {
+                    _context.DentistDetails.Add(dentist);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Dentist with ID {dentist.DentistId} already exists");
+                }
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -72,8 +80,20 @@ namespace DAO.ManageDentist
         {
             try
             {
-                _context.Entry(dentist).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                var existingDentist = await _context.DentistDetails.FirstOrDefaultAsync(d => d.DentistId == dentist.DentistId);
+                if (existingDentist != null)
+                {
+                    existingDentist.Degree = dentist.Degree;
+                    existingDentist.Institute = dentist.Institute;
+                    existingDentist.YearOfExperience = dentist.YearOfExperience;
+                    existingDentist.Specialization = dentist.Specialization;
+
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException($"Dentist with ID {dentist.DentistId} not found");
+                }
             }
             catch (Exception ex)
             {

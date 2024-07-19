@@ -1,14 +1,19 @@
-using System.Text;
 using BusinessObject.Data;
 using BusinessObject.Models;
+using Core.Auth.Permissions;
 using Core.Auth.Repository;
 using Core.Auth.Services;
-using Services.Clinics;
 using Core.Enums;
 using Core.Infrastructure.Exceptions;
+using Core.Infrastructure.FileStorage;
 using Core.Infrastructure.Hangfire;
 using Core.Infrastructure.Middleware;
+using Core.Infrastructure.Notifications;
+using Core.Infrastructure.reCAPTCHAv3;
 using Core.Infrastructure.Serilog;
+using Core.Infrastructure.SpeedSMS;
+using Core.Infrastructure.Validator;
+using Core.Models.Auditing;
 using Core.Properties;
 using Core.Repository;
 using Core.Services;
@@ -18,25 +23,19 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Repository;
-using Serilog;
-using Services.Dentist;
-using Repository.FollowUpAppointments;
-using Services.FollowUpAppointments;
-using Services.Appoinmets;
 using Repository.Appointments;
-using Core.Auth.Permissions;
-using Core.Infrastructure.reCAPTCHAv3;
-using Core.Infrastructure.FileStorage;
-using Microsoft.Extensions.FileProviders;
-using Core.Infrastructure.Validator;
-using Core.Infrastructure.SpeedSMS;
-using Core.Infrastructure.Notifications;
-using Microsoft.Build.Framework;
-using Microsoft.Extensions.Options;
+using Repository.FollowUpAppointments;
 using SendGrid.Helpers.Errors.Model;
+using Serilog;
+using Services.Appoinmets;
+using Services.Clinics;
+using Services.Dentist;
+using Services.FollowUpAppointments;
+using System.Text;
 
 namespace Core.Infrastructure
 {
@@ -146,7 +145,6 @@ namespace Core.Infrastructure
             })
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
-
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
@@ -217,6 +215,7 @@ namespace Core.Infrastructure
             services.AddScoped<INotificationSender, NotificationSender>();
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IAuditService, AuditService>();
             services.AddScoped<TokenCleanupJob>();
             services.AddScoped<RemindFollowUpAppointment>();
             services.AddTransient<IDummyService, DummyService>();

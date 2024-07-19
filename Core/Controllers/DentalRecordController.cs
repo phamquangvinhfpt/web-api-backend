@@ -29,11 +29,13 @@ namespace Core.Controllers
     {
         private readonly IDentalRecordService _recordService;
         private UserManager<AppUser> _userManager;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private IMailService _mailService;
         private readonly ILogger<DentalRecordController> _logger;
         private readonly IUriService uriService;
         private readonly IAppoinmentService appoinmentService;
-        public DentalRecordController(UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger, IUriService uriService)
+        private readonly ICurrentUserService currentUserService;
+        public DentalRecordController(UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger, IUriService uriService, ICurrentUserService currentUserService, RoleManager<IdentityRole<Guid>> roleManager)
         {
             _recordService = new DentalRecordService();
             _userManager = userManager;
@@ -41,6 +43,8 @@ namespace Core.Controllers
             _logger = logger;
             this.uriService = uriService;
             appoinmentService = new AppoinmentService();
+            this.currentUserService = currentUserService;
+            _roleManager = roleManager;
         }
 
         [HttpGet("getRecords")]
@@ -49,13 +53,40 @@ namespace Core.Controllers
         {
             try
             {
+                var user = await _userManager.FindByIdAsync(currentUserService.GetCurrentUserId());
+                var roles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
                 var route = Request.Path.Value;
                 var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize, filter.SortBy, filter.SortOrder, filter.SearchTerm, filter.FilterBy, filter.FilterValue);
-                var dentals = _recordService.getAllRecord().AsQueryable();
+                IQueryable<DentalRecordData> dentals = Enumerable.Empty<DentalRecordData>().AsQueryable();
+                foreach (var role in roles)
+                {
+                    var roleEntity = await _roleManager.FindByNameAsync(role).ConfigureAwait(false);
+                    if (roleEntity != null)
+                    {
+                        var rolename = await _roleManager.GetRoleNameAsync(roleEntity).ConfigureAwait(false);
+                        if (rolename.Equals("SuperAdmin"))
+                        {
+                            dentals = _recordService.getAllRecord().AsQueryable();
+                        }else if (rolename.Equals("ClinicOwner"))
+                        {
+                            dentals = _recordService.GetRecordByClinicOwner(user.Id).AsQueryable();
+                        }
+                        else if (rolename.Equals("Dentist"))
+                        {
+                            dentals = _recordService.GetRecordByDentist(user.Id).AsQueryable();
+                        }
+                        else if (rolename.Equals("Customer"))
+                        {
+                            dentals = _recordService.GetRecordByCustomer(user.Id).AsQueryable();
+                        }
+                    }
+                }
                 if (!string.IsNullOrEmpty(validFilter.SearchTerm))
                 {
                     dentals = dentals.Where(c =>
-                        c.type.ToString().Contains(validFilter.SearchTerm));
+                        c.dentist.ToString().ToLower().Contains(validFilter.SearchTerm.ToLower()) ||
+                        c.patient.ToString().ToLower().Contains(validFilter.SearchTerm.ToLower())
+                        );
                 }
                 if (!string.IsNullOrEmpty(validFilter.FilterBy) && !string.IsNullOrEmpty(validFilter.FilterValue))
                 {
@@ -106,6 +137,7 @@ namespace Core.Controllers
         }
 
         [HttpPost("getAppointmentForCreate")]
+        [MustHavePermission(Action.View, Resource.Appointments)]
         public IActionResult GetAppointmentForCreateDentalByID([FromBody] GetByIDRequest request)
         {
             try
@@ -133,6 +165,7 @@ namespace Core.Controllers
         }
 
         [HttpPost("getRecord")]
+        [MustHavePermission(Action.View, Resource.DentalRecords)]
         public async Task<IActionResult> GetAllRecordByID([FromBody] GetByIDRequest request)
         {
             try
@@ -166,6 +199,7 @@ namespace Core.Controllers
         }
 
         [HttpPost("createDentalRecord")]
+        [MustHavePermission(Action.Create, Resource.DentalRecords)]
         public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request)
         {
 

@@ -1,14 +1,18 @@
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 using AutoMapper;
+using BusinessObject.Models;
 using Core.Auth.Services;
 using Core.Infrastructure.Validator;
 using Core.Models;
+using Core.Models.Auditing;
 using Core.Models.Personal;
 using Core.Services;
+using Core.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 namespace Core.Controllers
 {
     [ApiController]
@@ -21,14 +25,20 @@ namespace Core.Controllers
         private readonly IStringLocalizerFactory _localizerFactory;
         private readonly ICurrentUserService _currentUserService;
         private readonly ILogger<PersonalController> _logger;
+        private readonly IAuditService _auditService;
+        private readonly UserManager<AppUser> _userManager;
 
-        public PersonalController(IUserService userService, IMapper mapper, IStringLocalizerFactory localizerFactory, ICurrentUserService currentUserService, ILogger<PersonalController> logger)
+        public PersonalController(IUserService userService, IMapper mapper, IStringLocalizerFactory localizerFactory,
+                                  ICurrentUserService currentUserService, ILogger<PersonalController> logger,
+                                  IAuditService auditService, UserManager<AppUser> userManager)
         {
             _userService = userService;
             _mapper = mapper;
             _localizerFactory = localizerFactory;
             _currentUserService = currentUserService;
             _logger = logger;
+            _auditService = auditService;
+            _userManager = userManager;
         }
 
         [HttpGet("profile")]
@@ -193,6 +203,36 @@ namespace Core.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        [HttpPost("logs")]
+        public Task<PaginationResponse<AuditDto>> GetLogsAsync(GetAuditLogsRequestDto requestDto)
+        {
+            try
+            {
+                var users = _userManager.Users.ToList();
+                List<Guid> userIds = users.Select(u => u.Id).ToList();
+
+                var request = new GetMyAuditLogsRequest
+                {
+                    UserId = userIds,
+                    PageNumber = requestDto.PageNumber,
+                    PageSize = requestDto.PageSize,
+                    Action = requestDto.Action,
+                    Resource = requestDto.Resource
+                };
+                return _auditService.GetUserTrailsAsync(request);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        [HttpGet("logs/resource-type")]
+        public async Task<List<string>> GetResourceNamesAsync()
+        {
+            return await _auditService.GetResourceName();
         }
 
         private string GetOriginFromRequest()

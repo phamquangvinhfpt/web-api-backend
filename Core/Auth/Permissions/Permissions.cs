@@ -19,6 +19,7 @@ namespace Core.Auth.Permissions
 
     public static class Resource
     {
+        public const string Permission = nameof(Permission);
         public const string Dashboard = nameof(Dashboard);
         public const string Hangfire = nameof(Hangfire);
         public const string Users = nameof(Users);
@@ -44,6 +45,9 @@ namespace Core.Auth.Permissions
         {
             new("View Dashboard", Action.View, Resource.Dashboard),
             new("View Hangfire", Action.View, Resource.Hangfire),
+
+            //Permission
+            new("View Permissions", Action.View, Resource.Permission, Roles.SuperAdmin),
 
             // USERS
             new("View Users", Action.View, Resource.Users, Roles.SuperAdmin),

@@ -1,6 +1,4 @@
-using System.Linq.Expressions;
 using AutoMapper;
-using BusinessObject.Models;
 using Core.Auth.Permissions;
 using Core.Auth.Services;
 using Core.Helpers;
@@ -10,6 +8,7 @@ using Core.Models.UserModels;
 using Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
 using Action = Core.Auth.Permissions.Action;
 namespace Core.Controllers
 {
@@ -102,5 +101,31 @@ namespace Core.Controllers
             }
         }
 
+        [HttpDelete("delete-user-account")]
+        [MustHavePermission(Action.Delete, Resource.Users)]
+        public async Task<Response<UserDetailsDto>> DeleteUserAsync([FromQuery] Guid userId)
+        {
+            try
+            {
+                if (!_userService.IsExist(userId))
+                {
+                    return new Response<UserDetailsDto>
+                    {
+                        Message = "User not found!",
+                        Succeeded = false
+                    };
+                }
+
+                return await _userService.DeleteUser(userId);
+            }
+            catch (Exception e)
+            {
+                return new Response<UserDetailsDto>
+                {
+                    Message = e.Message,
+                    Succeeded = false
+                };
+            }
+        }
     }
 }
