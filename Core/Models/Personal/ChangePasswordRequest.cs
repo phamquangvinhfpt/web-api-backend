@@ -1,4 +1,3 @@
-using Core.Infrastructure.Validator;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
