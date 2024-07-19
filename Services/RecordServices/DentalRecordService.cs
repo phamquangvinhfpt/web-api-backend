@@ -40,6 +40,11 @@ namespace Services.RecordServices
             {
                 throw new Exception("Appointment is not found");
             }
+            var date = DateTime.Now;
+            if(request.followUpAppointmentRequest.ScheduledDate < date)
+            {
+                throw new Exception("Date is not valid");
+            }
             var dental = dentalRecordRepository.CreateDentalRecord(appointment.Id, userID);
             medicalRecordRepository.CreateMedicalRecord(request.MedicalRecordRequest, appointment.Id, dental.Id, userID);
             followUpAppointmentRepository.CreateFollowAppointments(request.followUpAppointmentRequest, dental.Id, userID);

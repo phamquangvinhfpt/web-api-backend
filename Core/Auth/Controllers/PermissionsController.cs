@@ -72,6 +72,7 @@ namespace Core.Auth.Controllers
         }
 
         [HttpGet("permissions")]
+        [MustHavePermission(Action.View, Resource.Permission)]
         public IActionResult GetPermissions()
         {
             return Ok(Core.Auth.Permissions.Permissions.All);
