@@ -107,21 +107,22 @@ namespace Core.Controllers
         {
             try
             {
-                if (!await _dentistService.DentistExists(id))
+                // Check if the dentist exists
+                var existingDentist = await _dentistService.GetDentistById(id);
+                if (existingDentist == null)
                 {
                     return NotFound("Dentist not found");
                 }
 
+                // Perform the deletion
                 await _dentistService.DeleteDentist(id);
-                return Ok(new
-                {
-                    Message = "Deleted Successfully",
-                    Status = true
-                });
+                return NoContent(); // Return 204 No Content on successful deletion
             }
             catch (Exception ex)
             {
+                // Log the exception
                 _logger.LogError($"Something went wrong inside DeleteDentist action: {ex.Message}");
+                // Return a 500 Internal Server Error
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
