@@ -1,3 +1,4 @@
+// Services/Dentist/DentistService.cs
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -20,17 +21,17 @@ namespace Services.Dentist
 
         public async Task<IEnumerable<DentistDetailDTO>> GetAllDentists()
         {
-             try
-    {
-        var dentists = await _dentistRepository.GetAllDentists();
-        var dentistDtos = _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
-        return dentistDtos;
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error: {ex.Message}");
-        throw;
-    }
+            try
+            {
+                var dentists = await _dentistRepository.GetAllDentists();
+                var dentistDtos = _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
+                return dentistDtos;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<DentistDetailDTO> GetDentistById(Guid id)
