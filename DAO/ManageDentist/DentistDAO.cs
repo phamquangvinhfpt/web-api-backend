@@ -72,8 +72,21 @@ namespace DAO.ManageDentist
         {
             try
             {
-                _context.Entry(dentist).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                var existingDentist = await _context.DentistDetails.FirstOrDefaultAsync(d => d.DentistId == dentist.DentistId);
+                if (existingDentist != null)
+                {
+
+                    existingDentist.Degree = dentist.Degree;
+                    existingDentist.Institute = dentist.Institute;
+                    existingDentist.YearOfExperience = dentist.YearOfExperience;
+                    existingDentist.Specialization = dentist.Specialization;
+
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    throw new KeyNotFoundException($"Dentist with ID {dentist.DentistId} not found");
+                }
             }
             catch (Exception ex)
             {
