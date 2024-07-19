@@ -113,7 +113,11 @@ namespace DAO.AppointmentsDAO
         // get all appointments
         public List<Appointment> GetAllAppointments()
         {
-            return _context.Appointments.ToList();
+            return _context.Appointments.Include(a => a.Patient)
+                .Include(a => a.Dentist)
+                .Include(a => a.Clinic)
+                .ToList();
+            //.Include("Patient").Include("Dentist").Include("Clinic")
         }
         // delete appointment
         public void DeleteAppointment(Guid id)
