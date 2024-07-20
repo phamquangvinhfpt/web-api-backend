@@ -108,7 +108,7 @@ namespace Core.Controllers
             try
             {
                 // Check if the dentist exists
-                var existingDentist = await _dentistService.GetDentistById(Id);
+                var existingDentist = await _dentistService.GetDentistById(id);
                 if (existingDentist == null)
                 {
                     return NotFound("Dentist not found");
