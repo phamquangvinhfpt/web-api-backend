@@ -7,6 +7,7 @@ namespace DAO.Requests
 {
     public class DentistDetailDTO
     {
+        public Guid Id { get; set; }
         public Guid DentistId { get; set; }
         public Guid ClinicId { get; set; }
         public string Degree { get; set; } // Bằng cấp (VD: Bác sĩ nha khoa, Thạc sĩ nha khoa, Tiến sĩ nha khoa)
