@@ -106,7 +106,7 @@ namespace DAO.ManageDentist
         {
             try
             {
-                var dentist = await _context.DentistDetails.FindAsync(id);
+                var dentist = await GetDentistById(id);
                 if (dentist == null)
                 {
                     throw new KeyNotFoundException($"Dentist with ID {id} not found");
