@@ -1,10 +1,9 @@
 // Services/Dentist/DentistService.cs
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AutoMapper;
 using BusinessObject.Models;
 using DAO.Requests;
 using Repository;
+using Repository.Clinics;
 
 namespace Services.Dentist
 {
@@ -12,11 +11,13 @@ namespace Services.Dentist
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IMapper _mapper;
+        private readonly IClinicsRepository _clinicRepository;
 
-        public DentistService(IMapper mapper, IDentistRepository dentistRepository)
+        public DentistService(IMapper mapper, IDentistRepository dentistRepository, IClinicsRepository clinicsRepository)
         {
             _dentistRepository = dentistRepository;
             _mapper = mapper;
+            _clinicRepository = clinicsRepository;
         }
 
         public async Task<IEnumerable<DentistDetailDTO>> GetAllDentists()
@@ -24,6 +25,21 @@ namespace Services.Dentist
             try
             {
                 var dentists = await _dentistRepository.GetAllDentists();
+                var dentistDtos = _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
+                return dentistDtos;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DentistDetailDTO>> GetAllDentistsByClinicId(Guid id)
+        {
+            try
+            {
+                var dentists = await _dentistRepository.GetAllDentistsByClinicId(id);
                 var dentistDtos = _mapper.Map<IEnumerable<DentistDetailDTO>>(dentists);
                 return dentistDtos;
             }

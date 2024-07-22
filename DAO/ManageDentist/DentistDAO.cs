@@ -27,6 +27,21 @@ namespace DAO.ManageDentist
             }
         }
 
+        public async Task<IEnumerable<BusinessObject.Models.DentistDetail>> GetAllDentistsByClinicId(Guid id)
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                return await _context.DentistDetails.AsNoTracking().Where(d => d.ClinicId == id).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                Console.WriteLine($"Error retrieving all dentists by clinic ID {id}: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<BusinessObject.Models.DentistDetail> GetDentistById(Guid id)
         {
             using var transaction = _context.Database.BeginTransaction();
@@ -64,12 +79,18 @@ namespace DAO.ManageDentist
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                var existingDentist = _context.DentistDetails.FirstOrDefaultAsync(d => d.DentistId == dentist.DentistId);
+                var existingDentist = await _context.DentistDetails.FirstOrDefaultAsync(d => d.DentistId == dentist.DentistId);
                 if (existingDentist == null)
                 {
                     throw new InvalidOperationException($"Dentist with ID {dentist.DentistId} does not exist");
                 }
-                _context.DentistDetails.Update(dentist);
+                foreach (var property in _context.Entry(existingDentist).Properties)
+                {
+                    if (property.Metadata.Name != nameof(BusinessObject.Models.DentistDetail.Id))
+                    {
+                        property.CurrentValue = _context.Entry(dentist).Property(property.Metadata.Name).CurrentValue;
+                    }
+                }
                 await _context.SaveChangesAsync();
                 transaction.Commit();
             }

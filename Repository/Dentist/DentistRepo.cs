@@ -31,6 +31,11 @@ namespace Repository
             return _dentistDAO.GetAllDentists();
         }
 
+        public Task<IEnumerable<DentistDetail>> GetAllDentistsByClinicId(Guid id)
+        {
+            return _dentistDAO.GetAllDentistsByClinicId(id);
+        }
+
         public Task<DentistDetail> GetDentistById(Guid id)
         {
             return _dentistDAO.GetDentistById(id);

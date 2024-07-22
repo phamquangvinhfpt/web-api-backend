@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using DAO.Requests;
+﻿using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Services.Dentist;
 
 namespace Core.Controllers
@@ -37,6 +34,21 @@ namespace Core.Controllers
             }
         }
 
+        [HttpGet("Clinic/{id}")]
+        public async Task<IActionResult> GetDentistByClinicId(Guid id)
+        {
+            try
+            {
+                var dentists = await _dentistService.GetAllDentistsByClinicId(id);
+                return Ok(dentists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Something went wrong inside GetDentistByClinicId action: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDentistById(Guid id)
         {
@@ -62,7 +74,7 @@ namespace Core.Controllers
             try
             {
                 await _dentistService.CreateDentist(dentist);
-                return CreatedAtAction(nameof(GetDentistById), new { id = dentist.DentistId }, new
+                return Ok(new
                 {
                     Data = dentist,
                     Message = "Created Successfully",
