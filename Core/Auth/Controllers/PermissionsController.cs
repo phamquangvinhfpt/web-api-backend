@@ -42,7 +42,7 @@ namespace Core.Auth.Controllers
                 return BadRequest($"User '{UserId}' already has the permission '{Action}' on '{Resource}'.");
             }
             await _userManager.AddClaimAsync(user, new Claim(CustomClaimTypes.Permission, $"Permissions.{Resource}.{Action}"));
-            return Ok($"Permissions added to user '{UserId}' successfully.");
+            return Ok($"Permissions added to user '{user.FullName}' successfully.");
         }
 
         [HttpDelete("remove-permission")]
@@ -60,7 +60,7 @@ namespace Core.Auth.Controllers
             }
 
             var userClaims = await _userManager.GetClaimsAsync(user);
-            var permission = userClaims.FirstOrDefault(x => x.Type == CustomClaimTypes.Permission && x.Value == $"{Resource}.{Action}");
+            var permission = userClaims.FirstOrDefault(x => x.Type == CustomClaimTypes.Permission && x.Value == $"Permissions.{Resource}.{Action}");
 
             if (permission == null)
             {
@@ -68,7 +68,7 @@ namespace Core.Auth.Controllers
             }
 
             await _userManager.RemoveClaimAsync(user, permission);
-            return Ok($"Permissions removed from user '{UserId}' successfully.");
+            return Ok($"Permissions removed from user '{user.FullName}' successfully.");
         }
 
         [HttpGet("permissions")]
