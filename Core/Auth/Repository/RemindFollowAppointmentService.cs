@@ -16,11 +16,11 @@ namespace Core.Auth.Repository
         private IAppointmentRepository appointmentRepository;
         private IMailService _mailService;
         private readonly ILogger<RemindFollowAppointmentService> logger;
-        public RemindFollowAppointmentService(IMailService mailService, ILogger<RemindFollowAppointmentService> logger)
+        public RemindFollowAppointmentService(IMailService mailService, ILogger<RemindFollowAppointmentService> logger, IFollowUpAppointmentRepository repository, IDentalRecordRepository recordRepository, IAppointmentRepository appointmentRepository)
         {
-            repository = new FollowUpAppointmentRepository();
-            recordRepository = new DentalRecordRepository();
-            appointmentRepository = new AppointmentRepository();
+            this.repository = repository;
+            this.recordRepository = recordRepository;
+            this.appointmentRepository = appointmentRepository;
             _mailService = mailService;
             this.logger = logger;
         }
@@ -45,7 +45,31 @@ namespace Core.Auth.Repository
             throw new NotImplementedException();
         }
 
-        async Task IFollowUpAppointmentService.RemindFollowUpAppointment()
+        private void SendMailToRemind(AppUser patient, AppUser dentist, FollowUpAppointment appointment)
+        {
+            try
+            {
+                var appointmentDate = appointment.ScheduledDate.ToString("dd-MM-yyyy");
+                var mailContent = new MailRequest
+                {
+                    ToEmail = patient.Email,
+                    Subject = "Remind For Re-Examination",
+                    Body = $"<p>Hi {patient.FullName},</p>"
+                        + $"<p>We would like to see you at {appointmentDate} Because {appointment.Reason}</p>"
+                        + $"<p>Please let us know your availability, and we will be happy to arrange a convenient time for your next visit.</p>"
+                        + $"<p>We appreciate your ongoing trust in our dental practice and look forward to seeing you again soon.</p>"
+                        + $"<p>Best regards,</p>"
+                        + $"<p>{dentist.FullName}</p>"
+                };
+                _mailService.SendEmailAsync(mailContent);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
+        }
+
+        public Task RemindFollowUpAppointment()
         {
             try
             {
@@ -83,32 +107,12 @@ namespace Core.Auth.Repository
                         }
                     }
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 logger.LogError(ex.Message);
             }
-        }
-        private void SendMailToRemind(AppUser patient, AppUser dentist, FollowUpAppointment appointment)
-        {
-            try
-            {
-                var appointmentDate = appointment.ScheduledDate.ToString("dd-MM-yyyy");
-                var mailContent = new MailRequest
-                {
-                    ToEmail = patient.Email,
-                    Subject = "Remind For Re-Examination",
-                    Body = $"<p>Hi {patient.FullName},</p>"
-                        + $"<p>We would like to see you at {appointmentDate} Because {appointment.Reason}</p>"
-                        + $"<p>Please let us know your availability, and we will be happy to arrange a convenient time for your next visit.</p>"
-                        + $"<p>We appreciate your ongoing trust in our dental practice and look forward to seeing you again soon.</p>"
-                        + $"<p>Best regards,</p>"
-                        + $"<p>{dentist.FullName}</p>"
-                };
-                _mailService.SendEmailAsync(mailContent);
-            }catch(Exception ex)
-            {
-                logger.LogError(ex.Message);
-            }
+            return Task.CompletedTask;
         }
     }
 }

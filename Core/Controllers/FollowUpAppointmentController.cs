@@ -1,7 +1,6 @@
 ﻿using Core.Models;
 using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.FollowUpAppointments;
 using System.Security.Claims;
@@ -15,14 +14,14 @@ namespace Core.Controllers
     {
         private readonly IFollowUpAppointmentService _followUpAppointmentService;
         private readonly ILogger<FollowUpAppointmentController> _logger;
-        public FollowUpAppointmentController(ILogger<FollowUpAppointmentController> logger)
+        public FollowUpAppointmentController(ILogger<FollowUpAppointmentController> logger, IFollowUpAppointmentService followUpAppointmentService)
         {
-            _followUpAppointmentService = new FollowUpAppointmentService();
+            _followUpAppointmentService = followUpAppointmentService;
             _logger = logger;
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddFollowUp([FromBody] CreateFollowUp createFollowUp)
+        public IActionResult AddFollowUp([FromBody] CreateFollowUp createFollowUp)
         {
             try
             {
@@ -34,7 +33,8 @@ namespace Core.Controllers
                          Message = "Create success",
                          Errors = null
                      });
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status400BadRequest,

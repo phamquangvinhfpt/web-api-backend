@@ -13,41 +13,33 @@ namespace DAO.FollowUpAppoinmentsDAO
 {
     public class FollowUpAppointmentDAO
     {
-        private static FollowUpAppointmentDAO instance = null;
-        private AppDbContext _context = null;
+        private readonly AppDbContext _context;
 
-        public FollowUpAppointmentDAO()
+        public FollowUpAppointmentDAO(AppDbContext context)
         {
-            _context = new AppDbContext();
+            _context = context;
         }
-        public static FollowUpAppointmentDAO Instance
+
+        public async void UpdateStatus(Guid id, bool status)
         {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new FollowUpAppointmentDAO();
-                }
-                return instance;
-            }
-        }
-        public void UpdateStatus(Guid id, bool status)
-        {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var flu = _context.FollowUpAppointments.FirstOrDefault(p => p.Id == id);
                 flu.IsSuccess = status;
                 _context.FollowUpAppointments.Update(flu);
-                _context.SaveChanges();
-
+                await _context.SaveChangesAsync();
+                transaction.Commit();
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 throw new Exception(ex.Message);
             }
         }
-        public void CreateFollowAppointments(FollowUpAppointmentRequest requests, Guid dentalID, Guid userID)
+        public async void CreateFollowAppointments(FollowUpAppointmentRequest requests, Guid dentalID, Guid userID)
         {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
                 _context.FollowUpAppointments.Add(new FollowUpAppointment
@@ -59,21 +51,42 @@ namespace DAO.FollowUpAppoinmentsDAO
                     Reason = requests.Reason,
                     IsSuccess = false
                 });
-                _context.SaveChangesAsync(userID);
-            }catch (Exception ex)
+                await _context.SaveChangesAsync(userID);
+                transaction.Commit();
+            }
+            catch (Exception ex)
             {
+                transaction.Rollback();
                 throw new Exception(ex.Message);
             }
         }
 
         public List<FollowUpAppointment> GetFollowUpAppointmentsByDentalID(Guid dentalID)
         {
-            return _context.FollowUpAppointments.Where(p => p.DentalRecordId  == dentalID).ToList();
+            var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                return _context.FollowUpAppointments.Where(p => p.DentalRecordId == dentalID).ToList();
+
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception(ex.Message);
+            }
         }
         public List<FollowUpAppointment> GetAllIsFalse()
         {
-            var list = _context.FollowUpAppointments.Where(p => p.IsSuccess == false).ToList();
-            return list;
+            var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                return _context.FollowUpAppointments.Where(p => p.IsSuccess == false).ToList();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

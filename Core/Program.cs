@@ -1,9 +1,7 @@
 using Core.Infrastructure;
 using Core.Infrastructure.Notifications;
 using Hangfire;
-using Repository;
 using Serilog;
-using Services.Dentist;
 using init = Core.Infrastructure.Startup;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -26,8 +24,6 @@ try
     builder.Services.AddAutoMapper(typeof(Program));
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddAutoMapper(typeof(MappingProfile));
-    builder.Services.AddScoped<IDentistService, DentistService>();
-    builder.Services.AddScoped<IDentistRepository, DentistRepo>();
     var app = builder.Build();
     init.Initialize(app.Services, app.Configuration);
 

@@ -31,7 +31,7 @@ namespace DAO.MedicalDAO
             }
         }
 
-        public void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID, Guid userID)
+        public async void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID, Guid userID)
         {
             var mdcRecord = new MedicalRecord
             {
@@ -46,7 +46,7 @@ namespace DAO.MedicalDAO
             try
             {
                 _context.MedicalRecords.Add(mdcRecord);
-                _context.SaveChangesAsync(userID);
+                await _context.SaveChangesAsync(userID);
             }
             catch (Exception ex)
             {

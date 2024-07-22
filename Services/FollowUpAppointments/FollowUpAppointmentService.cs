@@ -14,14 +14,14 @@ namespace Services.FollowUpAppointments
 {
     public class FollowUpAppointmentService : IFollowUpAppointmentService
     {
-        private IFollowUpAppointmentRepository repository;
-        public FollowUpAppointmentService()
+        private IFollowUpAppointmentRepository _repository;
+        public FollowUpAppointmentService(IFollowUpAppointmentRepository repository)
         {
-            repository = new FollowUpAppointmentRepository();
+            _repository = repository;
         }
         public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID, Guid userID)
         {
-            repository.CreateFollowAppointments(request, dentalID, userID);
+            _repository.CreateFollowAppointments(request, dentalID, userID);
         }
 
         public List<FollowUpAppointment> GetAllIsFalse()

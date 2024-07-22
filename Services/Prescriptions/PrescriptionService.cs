@@ -11,8 +11,9 @@ namespace Services.Prescriptions
     public class PrescriptionService : IPrescriptionService
     {
         private readonly IPrescriptionRepository repository;
-        public PrescriptionService() {
-            repository = new PrescriptionRepository();
+        public PrescriptionService(IPrescriptionRepository repository)
+        {
+            this.repository = repository;
         }
         public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID)
         {

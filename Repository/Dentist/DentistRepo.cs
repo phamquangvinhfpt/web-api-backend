@@ -1,7 +1,4 @@
 // Repository/DentistRepo.cs
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using BusinessObject.Models;
 using DAO.ManageDentist;
 
@@ -9,34 +6,39 @@ namespace Repository
 {
     public class DentistRepo : IDentistRepository
     {
+        private readonly DentistDAO _dentistDAO;
+        public DentistRepo(DentistDAO dentistDAO)
+        {
+            _dentistDAO = dentistDAO;
+        }
         public Task CreateDentist(DentistDetail dentist)
         {
-            return DentistDAO.Instance.CreateDentist(dentist);
+            return _dentistDAO.CreateDentist(dentist);
         }
 
         public Task DeleteDentist(Guid id)
         {
-            return DentistDAO.Instance.DeleteDentist(id);
+            return _dentistDAO.DeleteDentist(id);
         }
 
         public Task<bool> DentistExists(Guid id)
         {
-            return DentistDAO.Instance.DentistExists(id);
+            return _dentistDAO.DentistExists(id);
         }
 
         public Task<IEnumerable<DentistDetail>> GetAllDentists()
         {
-            return DentistDAO.Instance.GetAllDentists();
+            return _dentistDAO.GetAllDentists();
         }
 
         public Task<DentistDetail> GetDentistById(Guid id)
         {
-            return DentistDAO.Instance.GetDentistById(id);
+            return _dentistDAO.GetDentistById(id);
         }
 
         public Task UpdateDentist(DentistDetail dentist)
         {
-            return DentistDAO.Instance.UpdateDentist(dentist);
+            return _dentistDAO.UpdateDentist(dentist);
         }
     }
 }

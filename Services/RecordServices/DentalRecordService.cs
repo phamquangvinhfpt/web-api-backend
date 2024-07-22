@@ -24,13 +24,15 @@ namespace Services.RecordServices
         private readonly IPrescriptionRepository prescriptionRepository;
         private readonly IMedicalRecordRepository medicalRecordRepository;
         private readonly IClinicsRepository clinicsRepository;
-        public DentalRecordService(){
-            clinicsRepository = new ClinicsRepository();
-            dentalRecordRepository = new DentalRecordRepository();
-            appointmentRepository = new AppointmentRepository();
-            followUpAppointmentRepository = new FollowUpAppointmentRepository();
-            prescriptionRepository = new PrescriptionRepository();
-            medicalRecordRepository = new MedicalRecordRepository();
+
+        public DentalRecordService(IDentalRecordRepository dentalRecordRepository, IAppointmentRepository appointmentRepository, IFollowUpAppointmentRepository followUpAppointmentRepository, IPrescriptionRepository prescriptionRepository, IMedicalRecordRepository medicalRecordRepository, IClinicsRepository clinicsRepository)
+        {
+            this.dentalRecordRepository = dentalRecordRepository;
+            this.appointmentRepository = appointmentRepository;
+            this.followUpAppointmentRepository = followUpAppointmentRepository;
+            this.prescriptionRepository = prescriptionRepository;
+            this.medicalRecordRepository = medicalRecordRepository;
+            this.clinicsRepository = clinicsRepository;
         }
 
         public Appointment CreateDentalRecord(CreateDentalRecordRequest request, Guid userID)

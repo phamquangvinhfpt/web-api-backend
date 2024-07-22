@@ -10,8 +10,13 @@ namespace Repository.Prescriptions
 {
     public class PrescriptionRepository : IPrescriptionRepository
     {
-        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID) => PrescriptionDAO.Instance.CreatePrescription(request, dentalReID, userID);
+        private readonly PrescriptionDAO _prescriptionDAO;
+        public PrescriptionRepository(PrescriptionDAO prescriptionDAO)
+        {
+            _prescriptionDAO = prescriptionDAO;
+        }
+        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID) => _prescriptionDAO.CreatePrescription(request, dentalReID, userID);
 
-        public List<Prescription> GetPrescriptionsByDentalID(Guid dentalID) => PrescriptionDAO.Instance.GetPrescriptionsByDentalID(dentalID);
+        public List<Prescription> GetPrescriptionsByDentalID(Guid dentalID) => _prescriptionDAO.GetPrescriptionsByDentalID(dentalID);
     }
 }
