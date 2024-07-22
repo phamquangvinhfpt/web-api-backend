@@ -73,10 +73,15 @@ namespace Core.Auth.Permissions
 
             // CLINICS
             new("View Clinics", Action.View, Resource.Clinics),
+            new("View Clinics", Action.View, Resource.Clinics, Roles.ClinicOwner),
             new("Create Clinics", Action.Create, Resource.Clinics, Roles.ClinicOwner),
             new("Update Clinics", Action.Update, Resource.Clinics, Roles.ClinicOwner),
             new("Delete Clinics", Action.Delete, Resource.Clinics, Roles.ClinicOwner),
-
+              new("View Clinics", Action.View, Resource.Clinics),
+            new("View Clinics", Action.View, Resource.Clinics, Roles.SuperAdmin),
+            new("Create Clinics", Action.Create, Resource.Clinics, Roles.SuperAdmin),
+            new("Update Clinics", Action.Update, Resource.Clinics, Roles.SuperAdmin),
+            new("Delete Clinics", Action.Delete, Resource.Clinics, Roles.SuperAdmin),
             // CLINIC DETAILS
             new("View ClinicDetails", Action.View, Resource.ClinicDetails),
             new("Create ClinicDetails", Action.Create, Resource.ClinicDetails, Roles.ClinicOwner),

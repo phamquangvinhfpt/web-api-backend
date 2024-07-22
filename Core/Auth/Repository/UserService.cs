@@ -105,6 +105,25 @@ namespace Core.Repository
             };
         }
 
+        public async Task<Response<AppUser>> GetUsersbyId(Guid id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return new Response<AppUser>
+                {
+                    Succeeded = false,
+                    Message = "User not found",
+                };
+            }
+            return new Response<AppUser>
+            {
+                Succeeded = true,
+                Data = user,
+                Message = "User found",
+            };
+        }
+
         //Create User
         public async Task<ResponseManager> CreateUser(RegisterUser model)
         {

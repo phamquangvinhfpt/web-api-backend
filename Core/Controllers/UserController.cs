@@ -1,4 +1,5 @@
 using AutoMapper;
+using BusinessObject.Models;
 using Core.Auth.Permissions;
 using Core.Auth.Services;
 using Core.Helpers;
@@ -100,7 +101,10 @@ namespace Core.Controllers
                 throw new Exception(e.Message);
             }
         }
-
+        [HttpGet("get-user-account-byID")]
+        public async Task<Response<AppUser>> GetUserbyId(Guid userId){
+            return await _userService.GetUsersbyId(userId);
+        }
         [HttpDelete("delete-user-account")]
         [MustHavePermission(Action.Delete, Resource.Users)]
         public async Task<Response<UserDetailsDto>> DeleteUserAsync([FromQuery] Guid userId)
