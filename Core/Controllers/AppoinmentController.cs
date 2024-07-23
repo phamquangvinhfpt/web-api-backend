@@ -167,5 +167,27 @@ namespace Core.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
             }
         }
+
+        // getbyDentistID
+        [HttpGet("GetByDentistID")]
+        public IActionResult GetByDentistID(Guid dentistID)
+        {
+            try
+            {
+                _logger.LogInformation($"Fetching appointments with Dentist ID: {dentistID}");
+                var appoinments = _appoinmentService.GetByDentistID(dentistID);
+                if (appoinments == null)
+                {
+                    _logger.LogWarning($"No appointments found with Dentist ID: {dentistID}");
+                    return NotFound("No appointments found.");
+                }
+                return Ok(appoinments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching appointments with Dentist ID: {dentistID}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+            }
+        }
     }
 }

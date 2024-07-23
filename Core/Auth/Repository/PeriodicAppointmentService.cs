@@ -65,6 +65,11 @@ namespace Core.Auth.Repository
             throw new NotImplementedException();
         }
 
+        public List<Appointment> GetByDentistID(Guid dentistID)
+        {
+            throw new NotImplementedException();
+        }
+
         async Task IAppoinmentService.PeriodicAppointment()
         {
             //var list lấy hàm Getallstatusandtype ra

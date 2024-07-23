@@ -76,5 +76,9 @@ namespace Services.Appoinmets
                 throw new Exception();
             }
         }
+
+        public List<Appointment> GetByDentistID(Guid dentistID)         {
+            return _AppoinsRepository.GetByDentistID(dentistID);
+        }
     }
 }
