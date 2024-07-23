@@ -26,5 +26,6 @@ namespace Repository.Appointments
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request) => AppointmentDAO.Instance.CreateAppointmentForPeriodic(request);
 
         public Appointment GetAppointmentForCreateDentalByID(Guid id) => AppointmentDAO.Instance.GetAppointmentForCreateDentalByID(id);
+        public List<Appointment> GetByDentistID(Guid dentistID) => AppointmentDAO.Instance.GetByDentistID(dentistID);
     }
 }

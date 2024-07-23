@@ -21,5 +21,6 @@ namespace Services.Appoinmets
         public void UpdateAppointmentDate(Guid Id, DateTime date);
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request);
         public AppointmentData GetAppointmentForCreateDentalByID(Guid id);
+        public List<Appointment> GetByDentistID(Guid dentistID);
     }
 }

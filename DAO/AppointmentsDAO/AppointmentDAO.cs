@@ -185,6 +185,12 @@ namespace DAO.AppointmentsDAO
             }
         }
 
+        // getbyDentistID
+        public List<Appointment> GetByDentistID(Guid dentistID)
+        {
+            return _context.Appointments.Include("Patient").Include("Dentist").Include("Clinic").Where(p => p.DentistID == dentistID).ToList();
+        }
+
     }
 }
 
