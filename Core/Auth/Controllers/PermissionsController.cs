@@ -39,7 +39,7 @@ namespace Core.Auth.Controllers
 
             if (userClaims.Any(x => x.Type == CustomClaimTypes.Permission && x.Value == $"{Resource}.{Action}"))
             {
-                return BadRequest($"User '{UserId}' already has the permission '{Action}' on '{Resource}'.");
+                return BadRequest($"User '{user.FullName}' already has the permission '{Action}' on '{Resource}'.");
             }
             await _userManager.AddClaimAsync(user, new Claim(CustomClaimTypes.Permission, $"Permissions.{Resource}.{Action}"));
             return Ok($"Permissions added to user '{user.FullName}' successfully.");
@@ -64,7 +64,7 @@ namespace Core.Auth.Controllers
 
             if (permission == null)
             {
-                return BadRequest($"User '{UserId}' does not have the permission '{Action}' on '{Resource}'.");
+                return BadRequest($"User '{user.FullName}' does not have the permission '{Action}' on '{Resource}'.");
             }
 
             await _userManager.RemoveClaimAsync(user, permission);
