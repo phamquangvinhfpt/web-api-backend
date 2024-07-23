@@ -8,16 +8,12 @@ using Core.Services;
 using DAO.Data;
 using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Math.EC;
 using Services.Appoinmets;
-using Services.FollowUpAppointments;
 using Services.RecordServices;
 using System.Linq.Expressions;
 using System.Security.Claims;
-using System.Security.Policy;
 using Action = Core.Auth.Permissions.Action;
 
 namespace Core.Controllers
@@ -35,9 +31,9 @@ namespace Core.Controllers
         private readonly IUriService uriService;
         private readonly IAppoinmentService appoinmentService;
         private readonly ICurrentUserService currentUserService;
-        public DentalRecordController(UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger, IUriService uriService, ICurrentUserService currentUserService, RoleManager<IdentityRole<Guid>> roleManager)
+        public DentalRecordController(UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger, IUriService uriService, ICurrentUserService currentUserService, RoleManager<IdentityRole<Guid>> roleManager, IDentalRecordService recordService)
         {
-            _recordService = new DentalRecordService();
+            _recordService = recordService;
             _userManager = userManager;
             _mailService = mailService;
             _logger = logger;
@@ -67,7 +63,8 @@ namespace Core.Controllers
                         if (rolename.Equals("SuperAdmin"))
                         {
                             dentals = _recordService.getAllRecord().AsQueryable();
-                        }else if (rolename.Equals("ClinicOwner"))
+                        }
+                        else if (rolename.Equals("ClinicOwner"))
                         {
                             dentals = _recordService.GetRecordByClinicOwner(user.Id).AsQueryable();
                         }
@@ -123,7 +120,8 @@ namespace Core.Controllers
                     Message = new List<dynamic> { pagedResponse },
                     Errors = null
                 });
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status400BadRequest,
@@ -185,7 +183,7 @@ namespace Core.Controllers
                  }
                  );
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status400BadRequest,
@@ -234,16 +232,17 @@ namespace Core.Controllers
                          Message = "Create record success",
                          Errors = null
                      });
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 return StatusCode(StatusCodes.Status400BadRequest,
                         new ResponseManager
-                    {
-                        IsSuccess = false,
-                        Message = ex.Message,
-                        Errors = null
-                    });
+                        {
+                            IsSuccess = false,
+                            Message = ex.Message,
+                            Errors = null
+                        });
             }
         }
 

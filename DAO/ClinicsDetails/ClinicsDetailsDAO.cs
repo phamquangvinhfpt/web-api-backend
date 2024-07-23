@@ -10,33 +10,23 @@ namespace DAO.ClinicsDetails
 {
     public class ClinicsDetailsDAO
     {
-        private static ClinicsDetailsDAO instance = null;
         private readonly AppDbContext _context = null;
 
-        public ClinicsDetailsDAO()
+        public ClinicsDetailsDAO(AppDbContext context)
         {
-            _context = new AppDbContext();
+            _context = context;
         }
 
-        public static ClinicsDetailsDAO Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new ClinicsDetailsDAO();
-                }
-                return instance;
-            }
-        }
         public List<ClinicDetail> GetAllClinicDetails()
         {
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 return _context.ClinicDetails.ToList();
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 Console.WriteLine($"Error retrieving tours: {ex.Message}");
                 throw;
             }
@@ -44,23 +34,32 @@ namespace DAO.ClinicsDetails
 
         public ClinicDetail GetClinicDetailById(Guid Id)
         {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
                 return _context.ClinicDetails.FirstOrDefault(c => c.Id == Id);
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 Console.WriteLine($"Error retrieving tour with ID {Id}: {ex.Message}");
                 throw;
             }
         }
 
-        public void AddClinicsDetails(ClinicDetail ClinicsDetails)
+        public async void AddClinicsDetails(ClinicDetail ClinicsDetails)
         {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
+                var existingClinics = _context.ClinicDetails.FirstOrDefault(c => c.Id == ClinicsDetails.Id);
+                if (existingClinics != null)
+                {
+                    throw new InvalidOperationException($"Clinic with ID {ClinicsDetails.Id} already exists");
+                }
                 _context.ClinicDetails.Add(ClinicsDetails);
-                _context.SaveChanges(true);
+                await _context.SaveChangesAsync();
+                transaction.Commit();
             }
             catch (Exception ex)
             {
@@ -69,16 +68,19 @@ namespace DAO.ClinicsDetails
             }
         }
 
-        public void UpdateClinicsDetails(ClinicDetail ClinicDetail)
+        public async void UpdateClinicsDetails(ClinicDetail ClinicDetail)
         {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
-                var existingClinics = _context.ClinicDetails.Find(ClinicDetail.Id);
-                if (existingClinics != null)
+                var existingClinics = _context.ClinicDetails.FirstOrDefault(c => c.Id == ClinicDetail.Id);
+                if (existingClinics == null)
                 {
-                    _context.Entry(existingClinics).CurrentValues.SetValues(ClinicDetail);
-                    _context.SaveChanges();
+                    throw new InvalidOperationException($"Clinic with ID {ClinicDetail.Id} does not exist");
                 }
+                _context.ClinicDetails.Update(ClinicDetail);
+                await _context.SaveChangesAsync();
+                transaction.Commit();
             }
             catch (Exception ex)
             {
@@ -87,20 +89,23 @@ namespace DAO.ClinicsDetails
             }
         }
 
-        public void DeleteClinicsDetails(Guid Id)
+        public async void DeleteClinicsDetails(Guid Id)
         {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
-                var clinicsdetails = _context.ClinicDetails.FirstOrDefault(c => c.Id == Id);
-                if (clinicsdetails != null)
+                var existingClinics = _context.ClinicDetails.FirstOrDefault(c => c.Id == Id);
+                if (existingClinics == null)
                 {
-                    _context.ClinicDetails.Remove(clinicsdetails);
-                    _context.SaveChanges(true);
+                    throw new InvalidOperationException($"Clinic with ID {Id} does not exist");
                 }
+                _context.ClinicDetails.Remove(existingClinics);
+                await _context.SaveChangesAsync();
+                transaction.Commit();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting tour with ID {Id}: {ex.Message}");
+                Console.WriteLine($"Error deleting tour: {ex.Message}");
                 throw;
             }
         }

@@ -9,17 +9,22 @@ namespace Repository.ClinicsDetails
 {
     public class ClinicsDetailsRepository : IClinicsDetailsRepository
     {
-        public void AddClinicsDetails(ClinicDetail ClinicsDetails) => ClinicsDetailsDAO.Instance.AddClinicsDetails(ClinicsDetails);
+        private readonly ClinicsDetailsDAO _clinicsDetailsDAO;
+        public ClinicsDetailsRepository(ClinicsDetailsDAO clinicsDetailsDAO)
+        {
+            _clinicsDetailsDAO = clinicsDetailsDAO;
+        }
+        public void AddClinicsDetails(ClinicDetail ClinicsDetails) => _clinicsDetailsDAO.AddClinicsDetails(ClinicsDetails);
         
 
-        public void DeleteClinicsDetails(Guid Id) => ClinicsDetailsDAO.Instance.DeleteClinicsDetails(Id);
+        public void DeleteClinicsDetails(Guid Id) => _clinicsDetailsDAO.DeleteClinicsDetails(Id);
         
 
-        public List<ClinicDetail> GetAllClinicDetails() => ClinicsDetailsDAO.Instance.GetAllClinicDetails();
+        public List<ClinicDetail> GetAllClinicDetails() => _clinicsDetailsDAO.GetAllClinicDetails();
         
-        public ClinicDetail GetClinicDetailById(Guid Id) => ClinicsDetailsDAO.Instance.GetClinicDetailById(Id);
+        public ClinicDetail GetClinicDetailById(Guid Id) => _clinicsDetailsDAO.GetClinicDetailById(Id);
         
-        public void UpdateClinicsDetails(ClinicDetail ClinicDetail) => ClinicsDetailsDAO.Instance.UpdateClinicsDetails(ClinicDetail);
+        public void UpdateClinicsDetails(ClinicDetail ClinicDetail) => _clinicsDetailsDAO.UpdateClinicsDetails(ClinicDetail);
         
     }
 }

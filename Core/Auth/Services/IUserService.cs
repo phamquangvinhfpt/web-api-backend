@@ -1,3 +1,4 @@
+using BusinessObject.Models;
 using Core.Models;
 using Core.Models.Personal;
 using Core.Models.UserModels;
@@ -9,6 +10,8 @@ namespace Core.Services
         Task<List<UserDetailsDto>> GetUsers();
 
         Task<ResponseManager> GetUserbyId(Guid id);
+
+        Task<Response<AppUser>> GetUsersbyId(Guid id);
 
         Task<ResponseManager> CreateUser(RegisterUser model);
 

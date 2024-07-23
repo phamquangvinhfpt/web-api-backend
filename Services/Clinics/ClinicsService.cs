@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BusinessObject.Models;
 using Repository.Clinics;
 
@@ -10,9 +6,9 @@ namespace Services.Clinics
     public class ClinicsService : IClinicsService
     {
         private IClinicsRepository _clinicsRepository;
-        public ClinicsService()
+        public ClinicsService(IClinicsRepository clinicsRepository)
         {
-            this._clinicsRepository = new ClinicsRepository();
+            _clinicsRepository = clinicsRepository;
         }
         public void AddClinics(Clinic clinic, Guid userId)
         {

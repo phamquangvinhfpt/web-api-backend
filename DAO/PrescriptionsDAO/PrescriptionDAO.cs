@@ -12,27 +12,16 @@ namespace DAO.PrescriptionsDAO
 {
     public class PrescriptionDAO
     {
-        private static PrescriptionDAO instance = null;
         private AppDbContext _context = null;
 
-        public PrescriptionDAO()
+        public PrescriptionDAO(AppDbContext context)
         {
-            _context = new AppDbContext();
-        }
-        public static PrescriptionDAO Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new PrescriptionDAO();
-                }
-                return instance;
-            }
+            _context = context;
         }
 
-        public void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID)
+        public async void CreatePrescription(List<PrescriptionRequest> request, Guid dentalReID, Guid userID)
         {
+            var transaction = _context.Database.BeginTransaction();
             List<Prescription> listPre = new List<Prescription>();
             foreach (var item in request)
             {
@@ -49,18 +38,28 @@ namespace DAO.PrescriptionsDAO
             try
             {
                 _context.Prescriptions.AddRange(listPre);
-                _context.SaveChangesAsync(userID);
+                await _context.SaveChangesAsync(userID);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 throw new Exception(ex.Message);
             }
-            
         }
 
         public List<Prescription> GetPrescriptionsByDentalID(Guid dentalID)
         {
-            return _context.Prescriptions.Where(p => p.DentalRecordId == dentalID).ToList();
+            var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                return _context.Prescriptions.Where(p => p.DentalRecordId == dentalID).ToList();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

@@ -10,9 +10,10 @@ namespace Services.ClinicsDetails
     public class ClinicsDetailsService : IClinicsDetailsService
     {
         private IClinicsDetailsRepository _clinicsDetailsRepository;
-        public ClinicsDetailsService()
+
+        public ClinicsDetailsService(IClinicsDetailsRepository clinicsDetailsRepository)
         {
-            this._clinicsDetailsRepository = new ClinicsDetailsRepository();
+            _clinicsDetailsRepository = clinicsDetailsRepository;
         }
         public void AddClinicsDetails(ClinicDetail ClinicsDetails)
         {

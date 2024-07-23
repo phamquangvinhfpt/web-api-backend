@@ -10,18 +10,23 @@ namespace Repository.RecordRepositories
 {
     public class DentalRecordRepository : IDentalRecordRepository
     {
-        public DentalRecord CreateDentalRecord(Guid appointmentid, Guid userID) => DentalRecordDAO.Instance.CreateDentalRecord(appointmentid, userID);
+        private readonly DentalRecordDAO _dentalRecordDAO;
+        public DentalRecordRepository(DentalRecordDAO dentalRecordDAO)
+        {
+            _dentalRecordDAO = dentalRecordDAO;
+        }
+        public DentalRecord CreateDentalRecord(Guid appointmentid, Guid userID) => _dentalRecordDAO.CreateDentalRecord(appointmentid, userID);
 
-        public List<DentalRecord> getAllRecord() => DentalRecordDAO.Instance.getAllRecord();
+        public List<DentalRecord> getAllRecord() => _dentalRecordDAO.getAllRecord();
 
-        public DentalRecord GetByAppointment(Guid appointmentId) => DentalRecordDAO.Instance.GetByAppointment(appointmentId);
+        public DentalRecord GetByAppointment(Guid appointmentId) => _dentalRecordDAO.GetByAppointment(appointmentId);
 
-        public List<DentalRecord> GetRecordByClinicOwner(Guid ownerID) => DentalRecordDAO.Instance.GetRecordByClinicOwner(ownerID);
+        public List<DentalRecord> GetRecordByClinicOwner(Guid ownerID) => _dentalRecordDAO.GetRecordByClinicOwner(ownerID);
 
-        public List<DentalRecord> GetRecordByCustomer(Guid customerID) => DentalRecordDAO.Instance.GetRecordByCustomer(customerID);
+        public List<DentalRecord> GetRecordByCustomer(Guid customerID) => _dentalRecordDAO.GetRecordByCustomer(customerID);
 
-        public List<DentalRecord> GetRecordByDentist(Guid dentisID) => DentalRecordDAO.Instance.GetRecordByDentist(dentisID);
+        public List<DentalRecord> GetRecordByDentist(Guid dentisID) => _dentalRecordDAO.GetRecordByDentist(dentisID);
 
-        public DentalRecord GetRecordByID(Guid id) => DentalRecordDAO.Instance.GetRecordByID(id);
+        public DentalRecord GetRecordByID(Guid id) => _dentalRecordDAO.GetRecordByID(id);
     }
 }

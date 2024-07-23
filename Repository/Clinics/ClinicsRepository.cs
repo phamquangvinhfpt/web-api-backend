@@ -7,14 +7,19 @@ namespace Repository.Clinics
 {
     public class ClinicsRepository : IClinicsRepository
     {
-        public void AddClinics(Clinic clinic, Guid userId) => ClinicsDAO.Instance.AddClinics(clinic, userId);
+        private readonly ClinicsDAO _clinicsDAO;
+        public ClinicsRepository(ClinicsDAO clinicsDAO)
+        {
+            _clinicsDAO = clinicsDAO;
+        }
+        public void AddClinics(Clinic clinic, Guid userId) => _clinicsDAO.AddClinics(clinic, userId);
 
-        public void DeleteClinics(Guid id) => ClinicsDAO.Instance.DeleteClinics(id);
+        public void DeleteClinics(Guid id) => _clinicsDAO.DeleteClinics(id);
 
-        public List<Clinic> GetAllClinics() => ClinicsDAO.Instance.GetAllClinics();
+        public List<Clinic> GetAllClinics() => _clinicsDAO.GetAllClinics();
 
-        public Clinic GetClinicsById(Guid id) => ClinicsDAO.Instance.GetClinicsById(id);
+        public Clinic GetClinicsById(Guid id) => _clinicsDAO.GetClinicsById(id);
 
-        public void UpdateClinics(Clinic clinic) => ClinicsDAO.Instance.UpdateClinics(clinic);
+        public void UpdateClinics(Clinic clinic) => _clinicsDAO.UpdateClinics(clinic);
     }
 }

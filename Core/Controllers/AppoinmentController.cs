@@ -1,12 +1,8 @@
 ﻿using BusinessObject.Models;
 using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Services.Appoinmets;
-using Services.Clinics;
-using System;
 
 namespace Core.Controllers
 {
@@ -18,7 +14,7 @@ namespace Core.Controllers
         private readonly IAppoinmentService _appoinmentService;
         private readonly ILogger<AppoinmentController> _logger;
 
-        public AppoinmentController( ILogger<AppoinmentController> logger)
+        public AppoinmentController(ILogger<AppoinmentController> logger)
         {
             _appoinmentService = new AppoinmentService();
             _logger = logger;
