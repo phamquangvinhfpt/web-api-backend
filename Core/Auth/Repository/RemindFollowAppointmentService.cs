@@ -1,11 +1,14 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.Enums;
+using BusinessObject.Models;
 using Core.Helpers;
+using Core.Infrastructure.Notifications;
 using Core.Services;
 using DAO.Requests;
 using Repository.Appointments;
 using Repository.FollowUpAppointments;
 using Repository.RecordRepositories;
 using Services.FollowUpAppointments;
+using System.Threading;
 
 namespace Core.Auth.Repository
 {
@@ -16,13 +19,15 @@ namespace Core.Auth.Repository
         private IAppointmentRepository appointmentRepository;
         private IMailService _mailService;
         private readonly ILogger<RemindFollowAppointmentService> logger;
-        public RemindFollowAppointmentService(IMailService mailService, ILogger<RemindFollowAppointmentService> logger, IFollowUpAppointmentRepository repository, IDentalRecordRepository recordRepository, IAppointmentRepository appointmentRepository)
+        private readonly INotificationService _notificationService;
+        public RemindFollowAppointmentService(INotificationService notificationService, IMailService mailService, ILogger<RemindFollowAppointmentService> logger, IFollowUpAppointmentRepository repository, IDentalRecordRepository recordRepository, IAppointmentRepository appointmentRepository)
         {
             this.repository = repository;
             this.recordRepository = recordRepository;
             this.appointmentRepository = appointmentRepository;
             _mailService = mailService;
             this.logger = logger;
+            _notificationService = notificationService;
         }
 
         public void CreateFollowAppointments(FollowUpAppointmentRequest request, Guid dentalID, Guid userID)
@@ -45,7 +50,7 @@ namespace Core.Auth.Repository
             throw new NotImplementedException();
         }
 
-        private void SendMailToRemind(AppUser patient, AppUser dentist, FollowUpAppointment appointment)
+        private async void SendMailToRemind(AppUser patient, AppUser dentist, FollowUpAppointment appointment, CancellationToken cancellationToken)
         {
             try
             {
@@ -61,6 +66,15 @@ namespace Core.Auth.Repository
                         + $"<p>Best regards,</p>"
                         + $"<p>{dentist.FullName}</p>"
                 };
+                var notification = new BasicNotification
+                {
+                    Message = $"We would like to see you at {appointmentDate}, check mail for detail",
+                    Label = BasicNotification.LabelType.Reminder,
+                    Title = "Remind your re-examination",
+                    Url = "/test"
+                };
+
+                await _notificationService.SendNotificationToUser(patient.Id.ToString(), notification, null, cancellationToken);
                 _mailService.SendEmailAsync(mailContent);
             }
             catch (Exception ex)
@@ -88,6 +102,7 @@ namespace Core.Auth.Repository
                     }
                     if (needs.Count > 0)
                     {
+                        CancellationToken cancellationToken = new CancellationToken();
                         foreach (var item in needs)
                         {
                             var dental = recordRepository.GetRecordByID(item.DentalRecordId);
@@ -103,7 +118,7 @@ namespace Core.Auth.Repository
                                     Type = appoint.Type
                                 });
                             repository.UpdateStatus(item.Id, true);
-                            SendMailToRemind(appoint.Patient, appoint.Dentist, item);
+                            SendMailToRemind(appoint.Patient, appoint.Dentist, item, cancellationToken);
                         }
                     }
                 }

@@ -1,7 +1,9 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.Enums;
+using BusinessObject.Models;
 using Core.Auth.Permissions;
 using Core.Auth.Services;
 using Core.Helpers;
+using Core.Infrastructure.Notifications;
 using Core.Models;
 using Core.Responses;
 using Core.Services;
@@ -31,8 +33,10 @@ namespace Core.Controllers
         private readonly IUriService uriService;
         private readonly IAppoinmentService appoinmentService;
         private readonly ICurrentUserService currentUserService;
-        public DentalRecordController(UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger, IUriService uriService, ICurrentUserService currentUserService, RoleManager<IdentityRole<Guid>> roleManager, IDentalRecordService recordService)
+        private readonly INotificationService _notificationService;
+        public DentalRecordController(INotificationService notificationService, UserManager<AppUser> userManager, IMailService mailService, ILogger<DentalRecordController> logger, IUriService uriService, ICurrentUserService currentUserService, RoleManager<IdentityRole<Guid>> roleManager, IDentalRecordService recordService)
         {
+            _notificationService = notificationService;
             _recordService = recordService;
             _userManager = userManager;
             _mailService = mailService;
@@ -198,9 +202,8 @@ namespace Core.Controllers
 
         [HttpPost("createDentalRecord")]
         [MustHavePermission(Action.Create, Resource.DentalRecords)]
-        public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request)
+        public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request, CancellationToken cancellationToken)
         {
-
             try
             {
                 var appointment = _recordService.CreateDentalRecord(request, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
@@ -225,6 +228,14 @@ namespace Core.Controllers
                         + $"<p>{dentist.FullName}</p>"
                 };
                 await _mailService.SendEmailAsync(mailContent);
+                var notification = new BasicNotification
+                {
+                    Message = "Your medical record has been created successfully",
+                    Label = BasicNotification.LabelType.Success,
+                    Title = "Dental Record Created Successfully",
+                    Url = "/test"
+                };
+                await _notificationService.SendNotificationToUser(appointment.PatientID.ToString(), notification, null, cancellationToken);
                 return StatusCode(StatusCodes.Status200OK,
                      new ResponseManager
                      {
