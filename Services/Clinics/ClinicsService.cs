@@ -30,9 +30,9 @@ namespace Services.Clinics
             return _clinicsRepository.GetClinicsById(Id);
         }
 
-        public void UpdateClinics(Clinic clinic)
+        public void UpdateClinics(Clinic clinic, Guid id)
         {
-            _clinicsRepository.UpdateClinics(clinic);
+            _clinicsRepository.UpdateClinics(clinic, id);
         }
     }
 }

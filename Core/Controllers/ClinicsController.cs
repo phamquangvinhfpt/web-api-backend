@@ -133,17 +133,16 @@ namespace Core.Controllers
         {
             try
             {
-                var existingClinic = _clinicsService.GetClinicsById(id);
-                if (existingClinic == null)
+                Clinic clinic = new Clinic
                 {
-                    return NotFound();
-                }
+                    Id = id,
+                    Name = clinicsModel.Name,
+                    Address = clinicsModel.Address,
+                    OwnerID = clinicsModel.OwnerID,
+                    Verified = false
+                };
 
-                existingClinic.Name = clinicsModel.Name;
-                existingClinic.OwnerID = clinicsModel.OwnerID;
-                existingClinic.Address = clinicsModel.Address;
-
-                _clinicsService.UpdateClinics(existingClinic);
+                _clinicsService.UpdateClinics(clinic, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
                 return NoContent();
             }
             catch (Exception ex)
