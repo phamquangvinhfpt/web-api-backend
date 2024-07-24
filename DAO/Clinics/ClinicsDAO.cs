@@ -37,6 +37,7 @@ namespace DAO.Clinics
             try
             {
                 return _context.Clinics.Include("ClinicDetails").FirstOrDefault(c => c.Id == Id);
+                
             }
             catch (Exception ex)
             {
@@ -67,9 +68,8 @@ namespace DAO.Clinics
             }
         }
 
-        public async void UpdateClinics(Clinic clinic)
+        public async void UpdateClinics(Clinic clinic, Guid id)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
@@ -77,13 +77,15 @@ namespace DAO.Clinics
                 {
                     throw new InvalidOperationException($"Clinic with ID {clinic.Id} does not exist");
                 }
-                _context.Clinics.Update(clinic);
-                await _context.SaveChangesAsync(true);
-                transaction.Commit();
+                existingClinics.OwnerID = clinic.OwnerID;
+                existingClinics.Name = clinic.Name;
+                existingClinics.Address = clinic.Address;
+                existingClinics.Verified = clinic.Verified;
+                _context.Clinics.Update(existingClinics);
+                await _context.SaveChangesAsync(id);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error updating tour: {ex.Message}");
                 throw;
             }
