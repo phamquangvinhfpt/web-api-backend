@@ -11,7 +11,7 @@ namespace DAO.Clinics
 {
     public class ClinicsDAO
     {
-        private readonly AppDbContext _context = null;
+        private readonly AppDbContext _context;
 
         public ClinicsDAO(AppDbContext context)
         {
@@ -37,12 +37,15 @@ namespace DAO.Clinics
             try
             {
                 return _context.Clinics.Include("ClinicDetails").FirstOrDefault(c => c.Id == Id);
-                
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error retrieving tour with ID {Id}: {ex.Message}");
                 throw;
+            } finally
+            {
+                transaction.Dispose();
             }
         }
 
@@ -65,29 +68,40 @@ namespace DAO.Clinics
                 transaction.Rollback();
                 Console.WriteLine($"Error adding tour: {ex.Message}");
                 throw;
+            } finally
+            {
+                transaction.Dispose();
             }
         }
 
         public async void UpdateClinics(Clinic clinic, Guid id)
         {
+            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
                 if (existingClinics == null)
                 {
-                    throw new InvalidOperationException($"Clinic with ID {clinic.Id} does not exist");
+                    throw new InvalidOperationException($"Clinic with ID {id} does not exist");
                 }
-                existingClinics.OwnerID = clinic.OwnerID;
+
                 existingClinics.Name = clinic.Name;
                 existingClinics.Address = clinic.Address;
                 existingClinics.Verified = clinic.Verified;
-                _context.Clinics.Update(existingClinics);
+                _context.Entry(existingClinics).State = EntityState.Detached;
+                _context.Attach(clinic);
+                _context.Entry(clinic).State = EntityState.Modified;
                 await _context.SaveChangesAsync(id);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 Console.WriteLine($"Error updating tour: {ex.Message}");
                 throw;
+            } finally
+            {
+                transaction.Dispose();
             }
         }
 
@@ -110,6 +124,9 @@ namespace DAO.Clinics
                 transaction.Rollback();
                 Console.WriteLine($"Error deleting tour: {ex.Message}");
                 throw;
+            } finally
+            {
+                transaction.Dispose();
             }
         }
     }
