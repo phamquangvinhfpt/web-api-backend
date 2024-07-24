@@ -2,7 +2,9 @@ using Core.Infrastructure;
 using Core.Infrastructure.Notifications;
 using Hangfire;
 using Repository;
+using Repository.Appointments;
 using Serilog;
+using Services.Appoinmets;
 using Services.Dentist;
 using init = Core.Infrastructure.Startup;
 Log.Logger = new LoggerConfiguration()
@@ -23,11 +25,14 @@ try
         logger.WriteTo.Console();
         logger.ReadFrom.Configuration(context.Configuration);
     });
+    builder.Services.AddLogging();
     builder.Services.AddAutoMapper(typeof(Program));
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddAutoMapper(typeof(MappingProfile));
     builder.Services.AddScoped<IDentistService, DentistService>();
     builder.Services.AddScoped<IDentistRepository, DentistRepo>();
+    builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+    builder.Services.AddScoped<IAppoinmentService, AppoinmentService>();
     var app = builder.Build();
     init.Initialize(app.Services, app.Configuration);
 

@@ -80,5 +80,10 @@ namespace Services.Appoinmets
         public List<Appointment> GetByDentistID(Guid dentistID)         {
             return _AppoinsRepository.GetByDentistID(dentistID);
         }
+
+        public List<Appointment> GetAppointmentsForUser(Guid userId)
+        {
+            return _AppoinsRepository.GetAppointmentsForUser(userId);
+        }
     }
 }

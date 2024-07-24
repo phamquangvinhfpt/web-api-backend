@@ -22,6 +22,7 @@ namespace Repository.Appointments
         public void UpdateAppointmentDate(Guid Id, DateTime date);
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request);
         public List<Appointment> GetByDentistID(Guid dentistID);
+        public List<Appointment> GetAppointmentsForUser(Guid userId);
 
     }
 }
