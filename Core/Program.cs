@@ -21,6 +21,7 @@ try
         logger.WriteTo.Console();
         logger.ReadFrom.Configuration(context.Configuration);
     });
+    builder.Services.AddLogging();
     builder.Services.AddAutoMapper(typeof(Program));
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddAutoMapper(typeof(MappingProfile));
