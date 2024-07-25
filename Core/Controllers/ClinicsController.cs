@@ -129,7 +129,8 @@ namespace Core.Controllers
             }
         }
         [HttpPut("UpdateClinics/{id}")]
-        public ActionResult UpdateClinics(Guid id, [FromBody] ClinicsModel clinicsModel)
+        public async Task<ActionResult> UpdateClinics(Guid id, [FromBody] UpdateClinics clinicsModel)
+
         {
             try
             {
@@ -139,7 +140,7 @@ namespace Core.Controllers
                     Name = clinicsModel.Name,
                     Address = clinicsModel.Address,
                     OwnerID = clinicsModel.OwnerID,
-                    Verified = false
+                    Verified = clinicsModel.Verified,
                 };
 
                 _clinicsService.UpdateClinics(clinic, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
