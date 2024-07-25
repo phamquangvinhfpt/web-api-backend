@@ -39,10 +39,6 @@ namespace DAO.Clinics
                 Console.WriteLine($"Error retrieving tour with ID {Id}: {ex.Message}");
                 throw;
             }
-            finally
-            {
-                transaction.Dispose();
-            }
         }
 
         public async void AddClinics(Clinic clinic, Guid userId)
@@ -65,15 +61,10 @@ namespace DAO.Clinics
                 Console.WriteLine($"Error adding tour: {ex.Message}");
                 throw;
             }
-            finally
-            {
-                transaction.Dispose();
-            }
         }
 
-        public async Task UpdateClinics(Clinic clinic, Guid id)
+        public void UpdateClinics(Clinic clinic, Guid id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
@@ -81,25 +72,16 @@ namespace DAO.Clinics
                 {
                     throw new InvalidOperationException($"Clinic with ID {id} does not exist");
                 }
-
                 existingClinics.Name = clinic.Name;
                 existingClinics.Address = clinic.Address;
                 existingClinics.Verified = clinic.Verified;
-                _context.Entry(existingClinics).State = EntityState.Detached;
-                _context.Attach(clinic);
-                _context.Entry(clinic).State = EntityState.Modified;
-                await _context.SaveChangesAsync(id);
-                await transaction.CommitAsync();
+                _context.Clinics.Update(existingClinics);
+                _context.SaveChangesAsync(id);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 Console.WriteLine($"Error updating tour: {ex.Message}");
                 throw;
-            }
-            finally
-            {
-                transaction.Dispose();
             }
         }
 
@@ -122,10 +104,6 @@ namespace DAO.Clinics
                 transaction.Rollback();
                 Console.WriteLine($"Error deleting tour: {ex.Message}");
                 throw;
-            }
-            finally
-            {
-                transaction.Dispose();
             }
         }
     }
