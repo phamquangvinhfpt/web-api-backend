@@ -11,7 +11,7 @@ namespace Repository.Appointments
 {
     public class AppointmentRepository : IAppointmentRepository
     {
-        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status)=> AppointmentDAO.Instance.ChangeStatusAppointment(appointmentID, status);
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID)=> AppointmentDAO.Instance.ChangeStatusAppointment(appointmentID, status, userID);
 
         public Appointment CreateAppointment(AppointmentRequest request) => AppointmentDAO.Instance.CreateAppointment(request);
 

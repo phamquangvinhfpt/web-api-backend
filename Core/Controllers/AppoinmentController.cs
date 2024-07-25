@@ -1,10 +1,12 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.Enums;
+using BusinessObject.Models;
 using Core.Auth.Services;
 using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Appoinmets;
+using System.Security.Claims;
 
 namespace Core.Controllers
 {
@@ -204,6 +206,19 @@ namespace Core.Controllers
             }
         }
 
+        [HttpGet("ChangeStatus")]
+        public IActionResult ChangeStatus(Guid appointmentID, AppointmentStatus status)
+        {
+            try
+            {
+                _appoinmentService.ChangeStatusAppointment(appointmentID, status, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
+                return Ok("Change status successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
     }
 }

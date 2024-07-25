@@ -13,7 +13,7 @@ namespace Repository.Appointments
         public Appointment GetAppointmentForCreateDentalByID(Guid id);
         public Appointment GetAppointmentByID(Guid id);
         public Appointment CreateAppointment(AppointmentRequest request);
-        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status);
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID);
         public Appointment GetAppoitmentAndDental(Guid id);
         public void DeleteAppointment(Guid id);
         public List<Appointment> GetAllAppointments();
