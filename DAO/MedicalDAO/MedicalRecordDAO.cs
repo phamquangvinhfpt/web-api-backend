@@ -43,13 +43,16 @@ namespace DAO.MedicalDAO
                 Diagnosis = request.Diagnosis,
                 Treatment = request.Treatment,
             };
+            var transaction = _context.Database.BeginTransaction();
             try
             {
                 _context.MedicalRecords.Add(mdcRecord);
                 await _context.SaveChangesAsync(userID);
+                transaction.Commit();
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 throw new Exception(ex.Message);
             }
             

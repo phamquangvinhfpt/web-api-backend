@@ -202,7 +202,7 @@ namespace Core.Controllers
 
         [HttpPost("createDentalRecord")]
         [MustHavePermission(Action.Create, Resource.DentalRecords)]
-        public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateDentalRecord([FromBody] CreateDentalRecordRequest request)
         {
             try
             {
@@ -228,6 +228,7 @@ namespace Core.Controllers
                         + $"<p>{dentist.FullName}</p>"
                 };
                 await _mailService.SendEmailAsync(mailContent);
+                CancellationToken cancellationToken = new CancellationToken();
                 var notification = new BasicNotification
                 {
                     Message = "Your medical record has been created successfully",

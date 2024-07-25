@@ -146,6 +146,7 @@ namespace DAO.RecordDAO
                 {
                     throw new FileNotFoundException("Record is not found");
                 }
+                transactions.Commit();
                 return existingRecord;
             }
             catch (Exception ex)
@@ -166,6 +167,7 @@ namespace DAO.RecordDAO
                 {
                     throw new FileNotFoundException("Record is not found");
                 }
+                transactions.Commit();
                 return existingRecord;
             }
             catch (Exception ex)
