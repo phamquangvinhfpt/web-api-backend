@@ -1,12 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BusinessObject.Data;
 using BusinessObject.Models;
-using DAO.Clinics;
-using DAO.Requests;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAO.RecordDAO
@@ -22,7 +15,6 @@ namespace DAO.RecordDAO
 
         public List<DentalRecord> getAllRecord()
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 return _context.DentalRecords
@@ -35,13 +27,11 @@ namespace DAO.RecordDAO
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }
         public List<DentalRecord> GetRecordByClinicOwner(Guid ownerID)
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 List<DentalRecord> list = new List<DentalRecord>();
@@ -71,13 +61,11 @@ namespace DAO.RecordDAO
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }
         public List<DentalRecord> GetRecordByDentist(Guid dentisID)
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 List<DentalRecord> list = new List<DentalRecord>();
@@ -100,13 +88,11 @@ namespace DAO.RecordDAO
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }
         public List<DentalRecord> GetRecordByCustomer(Guid customerID)
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 List<DentalRecord> list = new List<DentalRecord>();
@@ -127,13 +113,11 @@ namespace DAO.RecordDAO
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }
         public DentalRecord GetRecordByID(Guid id)
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 var existingRecord = _context.DentalRecords
@@ -146,18 +130,15 @@ namespace DAO.RecordDAO
                 {
                     throw new FileNotFoundException("Record is not found");
                 }
-                transactions.Commit();
                 return existingRecord;
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }
         public DentalRecord GetByAppointment(Guid appointmentId)
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 var existingRecord = _context.DentalRecords
@@ -167,18 +148,15 @@ namespace DAO.RecordDAO
                 {
                     throw new FileNotFoundException("Record is not found");
                 }
-                transactions.Commit();
                 return existingRecord;
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }
         public DentalRecord CreateDentalRecord(Guid appointmentID, Guid userID)
         {
-            var transactions = _context.Database.BeginTransaction();
             try
             {
                 DentalRecord dentalRecord = new DentalRecord
@@ -191,7 +169,6 @@ namespace DAO.RecordDAO
                 {
                     var dtr = _context.DentalRecords.Add(dentalRecord);
                     _context.SaveChangesAsync(userID);
-                    transactions.Commit();
                     return dtr.Entity;
                 }
                 catch (Exception ex)
@@ -201,7 +178,6 @@ namespace DAO.RecordDAO
             }
             catch (Exception ex)
             {
-                transactions.Rollback();
                 throw new Exception(ex.Message);
             }
         }

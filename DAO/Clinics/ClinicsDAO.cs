@@ -41,9 +41,8 @@ namespace DAO.Clinics
             }
         }
 
-        public async void AddClinics(Clinic clinic, Guid userId)
+        public void AddClinics(Clinic clinic, Guid userId)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
@@ -52,12 +51,10 @@ namespace DAO.Clinics
                     throw new InvalidOperationException($"Clinic with ID {clinic.Id} already exists");
                 }
                 _context.Clinics.Add(clinic);
-                await _context.SaveChangesAsync(userId);
-                transaction.Commit();
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error adding tour: {ex.Message}");
                 throw;
             }
@@ -85,9 +82,8 @@ namespace DAO.Clinics
             }
         }
 
-        public async void DeleteClinics(Guid Id)
+        public void DeleteClinics(Guid Id)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var clinic = _context.Clinics.FirstOrDefault(c => c.Id == Id);
@@ -96,12 +92,10 @@ namespace DAO.Clinics
                     throw new InvalidOperationException($"Clinic with ID {Id} does not exist");
                 }
                 _context.Clinics.Remove(clinic);
-                await _context.SaveChangesAsync(true);
-                transaction.Commit();
+                _context.SaveChangesAsync(true);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error deleting tour: {ex.Message}");
                 throw;
             }
