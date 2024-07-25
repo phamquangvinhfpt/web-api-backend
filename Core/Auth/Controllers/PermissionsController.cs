@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BusinessObject.Models;
 using Core.Auth.Permissions;
+using Core.Auth.Services;
 using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,11 +16,13 @@ namespace Core.Auth.Controllers
     {
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly UserManager<AppUser> _userManager;
+        private readonly ITokenService _tokenService;
 
-        public PermissionsController(RoleManager<IdentityRole<Guid>> roleManager, UserManager<AppUser> userManager)
+        public PermissionsController(RoleManager<IdentityRole<Guid>> roleManager, UserManager<AppUser> userManager, ITokenService tokenService)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+            _tokenService = tokenService;
         }
 
         [HttpPost("add-permission")]
@@ -42,6 +45,11 @@ namespace Core.Auth.Controllers
                 return BadRequest($"User '{user.FullName}' already has the permission '{Action}' on '{Resource}'.");
             }
             await _userManager.AddClaimAsync(user, new Claim(CustomClaimTypes.Permission, $"Permissions.{Resource}.{Action}"));
+            var token = _tokenService.GetTokens(Guid.Parse(UserId));
+            if(token.Result.Count > 0)
+            {
+                _tokenService.RevokeToken(token.Result);
+            }
             return Ok($"Permissions added to user '{user.FullName}' successfully.");
         }
 
@@ -68,6 +76,11 @@ namespace Core.Auth.Controllers
             }
 
             await _userManager.RemoveClaimAsync(user, permission);
+            var token = _tokenService.GetTokens(Guid.Parse(UserId));
+            if (token.Result.Count > 0)
+            {
+                _tokenService.RevokeToken(token.Result);
+            }
             return Ok($"Permissions removed from user '{user.FullName}' successfully.");
         }
 
