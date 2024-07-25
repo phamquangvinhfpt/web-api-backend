@@ -2,11 +2,6 @@
 using BusinessObject.Models;
 using DAO.Data;
 using DAO.Requests;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.Appoinmets
 {
@@ -25,5 +20,6 @@ namespace Services.Appoinmets
         public List<Appointment> GetByDentistID(Guid dentistID);
         public List<Appointment> GetAppointmentsForUser(Guid userId);
         public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID);
+        public List<Appointment> SearchAppointmentByName(string name);
     }
 }

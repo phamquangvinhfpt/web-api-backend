@@ -88,5 +88,9 @@ namespace Services.Appoinmets
         }
 
         public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID) => _AppoinsRepository.ChangeStatusAppointment(appointmentID, status, userID);
+        public List<Appointment> SearchAppointmentByName(string name)
+            {
+            return _AppoinsRepository.SearchAppointmentByName(name);
+        }
     }
 }

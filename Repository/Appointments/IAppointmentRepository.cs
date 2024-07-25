@@ -23,6 +23,7 @@ namespace Repository.Appointments
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request);
         public List<Appointment> GetByDentistID(Guid dentistID);
         public List<Appointment> GetAppointmentsForUser(Guid userId);
+        public List<Appointment> SearchAppointmentByName(string name);
 
     }
 }

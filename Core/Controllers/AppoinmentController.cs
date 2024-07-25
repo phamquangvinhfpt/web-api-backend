@@ -1,12 +1,14 @@
-﻿using BusinessObject.Enums;
+﻿using System.Security.Claims;
+using BusinessObject.Enums;
 using BusinessObject.Models;
+using Core.Auth.Permissions;
 using Core.Auth.Services;
 using DAO.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services.Appoinmets;
-using System.Security.Claims;
+using Action = Core.Auth.Permissions.Action;
 
 namespace Core.Controllers
 {
@@ -20,19 +22,22 @@ namespace Core.Controllers
         private readonly ICurrentUserService _currentUserService;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private UserManager<AppUser> _userManager;
+        private readonly IUriService uriService;
 
-        public AppoinmentController( ILogger<AppoinmentController> logger, ICurrentUserService currentUserService, UserManager<AppUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+        public AppoinmentController( ILogger<AppoinmentController> logger, ICurrentUserService currentUserService, UserManager<AppUser> userManager, RoleManager<IdentityRole<Guid>> roleManager, IUriService uriService)
         {
             _appoinmentService = new AppoinmentService();
             _logger = logger;
             this._currentUserService = currentUserService;
             _roleManager = roleManager;
             _userManager = userManager;
-
+            this.uriService = uriService;
         }
 
         // GET: api/<AppoinmentController>
         [HttpGet("GetAll")]
+        //permission [MustHavePermission]
+        [MustHavePermission( Action.View, Resource.Appointments)]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -64,6 +69,8 @@ namespace Core.Controllers
 
         // GET api/<AppoinmentController>/5
         [HttpGet("GetById")]
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.View, Resource.Appointments)]
         public IActionResult Get(Guid id)
         {
             try
@@ -86,6 +93,8 @@ namespace Core.Controllers
 
         // POST api/<AppoinmentController>
         [HttpPost("Create")]
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.Create, Resource.Appointments)]
         public IActionResult Post([FromBody] AppointmentRequest appointment)
         {
             if (appointment == null)
@@ -109,36 +118,53 @@ namespace Core.Controllers
 
         // PUT api/<AppoinmentController>/5
         [HttpPut("Update")]
-        public IActionResult Put(Guid id, [FromBody] Appointment appointment)
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.Update, Resource.Appointments)]
+        public IActionResult UpdateAppointment(Guid id, [FromBody] AppointmentRequest request)
         {
-            if (appointment == null)
+            if (request == null)
             {
-                _logger.LogWarning("Invalid appointment request.");
-                return BadRequest();
+                return BadRequest("Invalid request.");
             }
 
             try
             {
-                _logger.LogInformation($"Updating appointment with ID: {id}");
-                var updateAppointment = _appoinmentService.GetAppointmentByID(id);
-                if (updateAppointment == null)
+                // Lấy cuộc hẹn hiện tại
+                var existingAppointment = _appoinmentService.GetAppointmentByID(id);
+                if (existingAppointment == null)
                 {
-                    _logger.LogWarning($"Appointment with ID: {id} not found.");
-                    return NotFound();
+                    return NotFound("Appointment not found.");
                 }
 
-                _appoinmentService.UpdateAppointment(appointment);
-                return Ok(appointment);
+                // Tạo đối tượng cuộc hẹn với các thuộc tính cần cập nhật
+                var appointmentToUpdate = new Appointment
+                {
+                    Id = id,
+                    PatientID = request.PatientID,
+                    DentistID = request.DentistID,
+                    ClinicID = request.ClinicID,
+                    Date = request.Date,
+                    TimeSlot = request.TimeSlot,
+                    duration = existingAppointment.duration, // Giữ nguyên giá trị hiện tại
+                    Type = existingAppointment.Type, // Giữ nguyên giá trị hiện tại
+                    Status = existingAppointment.Status, // Giữ nguyên giá trị hiện tại
+                    CreatedAt = existingAppointment.CreatedAt, // Giữ nguyên giá trị hiện tại
+                    UpdatedAt = DateTime.Now // Cập nhật thời gian sửa đổi
+                };
+
+                _appoinmentService.UpdateAppointment(appointmentToUpdate);
+                return Ok("Appointment updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating appointment with ID: {id}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+                return StatusCode(500, ex.Message);
             }
         }
 
         // DELETE api/<AppoinmentController>/5
         [HttpDelete("Delete")]
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.Delete, Resource.Appointments)]
         public IActionResult Delete(Guid id)
         {
             try
@@ -163,6 +189,8 @@ namespace Core.Controllers
 
         // POST api/<AppoinmentController>/CreateAppointmentForPeriodic
         [HttpPost("CreateAppointmentForPeriodic")]
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.Create, Resource.Appointments)]
         public IActionResult CreateAppointmentForPeriodic([FromBody] AppointmentRequest appointment)
         {
             if (appointment == null)
@@ -186,6 +214,8 @@ namespace Core.Controllers
 
         // getbyDentistID
         [HttpGet("GetByDentistID")]
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.View, Resource.Appointments)]
         public IActionResult GetByDentistID(Guid dentistID)
         {
             try
@@ -219,6 +249,30 @@ namespace Core.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        //api /<AppoinmentController>/SearchAppointmentByName
+        [HttpGet("SearchAppointmentByName")]
+        //permission [MustHavePermission]
+        [MustHavePermission(Action.View, Resource.Appointments)]
+        public IActionResult SearchAppointmentByName(string name)
+        {
+            try
+            {
+                _logger.LogInformation($"Searching appointments with name: {name}");
+                var appoinments = _appoinmentService.SearchAppointmentByName(name);
+                if (appoinments == null)
+                {
+                    _logger.LogWarning($"No appointments found with name: {name}");
+                    return NotFound("No appointments found.");
+                }
+                return Ok(appoinments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error searching appointments with name: {name}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
+            }
+        }
+
 
     }
 }
