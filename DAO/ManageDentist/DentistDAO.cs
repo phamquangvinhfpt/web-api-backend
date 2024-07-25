@@ -51,12 +51,12 @@ namespace DAO.ManageDentist
             }
         }
 
-        public Task CreateDentist(BusinessObject.Models.DentistDetail dentist)
+        public Task CreateDentist(BusinessObject.Models.DentistDetail dentist, Guid userId)
         {
             try
             {
                 _context.DentistDetails.Add(dentist);
-                _context.SaveChangesAsync();
+                _context.SaveChangesAsync(userId);
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -66,7 +66,7 @@ namespace DAO.ManageDentist
             }
         }
 
-        public async Task UpdateDentist(BusinessObject.Models.DentistDetail dentist)
+        public async Task UpdateDentist(BusinessObject.Models.DentistDetail dentist, Guid userId)
         {
             try
             {
@@ -82,7 +82,7 @@ namespace DAO.ManageDentist
                         property.CurrentValue = _context.Entry(dentist).Property(property.Metadata.Name).CurrentValue;
                     }
                 }
-                _context.SaveChangesAsync();
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {
@@ -91,7 +91,7 @@ namespace DAO.ManageDentist
             }
         }
 
-        public async Task DeleteDentist(Guid id)
+        public async Task DeleteDentist(Guid id, Guid userId)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace DAO.ManageDentist
                     throw new InvalidOperationException($"Dentist with ID {id} does not exist");
                 }
                 _context.DentistDetails.Remove(existingDentist);
-                _context.SaveChangesAsync();
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {

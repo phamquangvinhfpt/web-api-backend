@@ -28,7 +28,6 @@ namespace DAO.Clinics
 
         public Clinic GetClinicsById(Guid Id)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 return _context.Clinics.Include("ClinicDetails").FirstOrDefault(c => c.Id == Id);

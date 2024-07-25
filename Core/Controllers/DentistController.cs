@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Dentist;
+using System.Security.Claims;
 
 namespace Core.Controllers
 {
@@ -73,7 +74,7 @@ namespace Core.Controllers
         {
             try
             {
-                await _dentistService.CreateDentist(dentist);
+                await _dentistService.CreateDentist(dentist, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
                 return Ok(new
                 {
                     Data = dentist,
@@ -99,7 +100,7 @@ namespace Core.Controllers
                 }
 
                 dentist.DentistId = id;
-                await _dentistService.UpdateDentist(dentist);
+                await _dentistService.UpdateDentist(dentist, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
                 return Ok(new
                 {
                     Data = dentist,
@@ -127,7 +128,7 @@ namespace Core.Controllers
                 }
 
                 // Perform the deletion
-                await _dentistService.DeleteDentist(id);
+                await _dentistService.DeleteDentist(id, Guid.Parse(User?.FindFirst(ClaimTypes.NameIdentifier).Value));
                 return NoContent(); // Return 204 No Content on successful deletion
             }
             catch (Exception ex)

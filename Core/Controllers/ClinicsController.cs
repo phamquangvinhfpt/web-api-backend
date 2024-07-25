@@ -1,13 +1,13 @@
 using BusinessObject.Models;
-using Services.Clinics;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using Core.Models.Clinics;
-using Core.Models;
 using Core.Auth.Services;
 using Core.Helpers;
+using Core.Models;
+using Core.Models.Clinics;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Services.Clinics;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace Core.Controllers
 {
@@ -108,7 +108,7 @@ namespace Core.Controllers
             }
         }
         [HttpPost("AddClinics")]
-        public async Task<ActionResult> AddClinics([FromBody] ClinicsModel clinicsmodel)
+        public ActionResult AddClinics([FromBody] ClinicsModel clinicsmodel)
         {
             try
             {
@@ -129,7 +129,7 @@ namespace Core.Controllers
             }
         }
         [HttpPut("UpdateClinics/{id}")]
-        public async Task<ActionResult> UpdateClinics(Guid id, [FromBody] ClinicsModel clinicsModel)
+        public ActionResult UpdateClinics(Guid id, [FromBody] ClinicsModel clinicsModel)
         {
             try
             {
@@ -151,7 +151,7 @@ namespace Core.Controllers
             }
         }
         [HttpDelete("DeleteClinics/{id}")]
-        public async Task<ActionResult> DeleteClinics(Guid id)
+        public ActionResult DeleteClinics(Guid id)
         {
             try
             {
