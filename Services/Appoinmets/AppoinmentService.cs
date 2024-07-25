@@ -85,5 +85,9 @@ namespace Services.Appoinmets
         {
             return _AppoinsRepository.GetAppointmentsForUser(userId);
         }
+        public List<Appointment> SearchAppointmentByName(string name)
+            {
+            return _AppoinsRepository.SearchAppointmentByName(name);
+        }
     }
 }
