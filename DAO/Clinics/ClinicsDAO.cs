@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BusinessObject.Data;
 using BusinessObject.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 
 namespace DAO.Clinics
 {
@@ -43,7 +38,8 @@ namespace DAO.Clinics
             {
                 Console.WriteLine($"Error retrieving tour with ID {Id}: {ex.Message}");
                 throw;
-            } finally
+            }
+            finally
             {
                 transaction.Dispose();
             }
@@ -68,15 +64,16 @@ namespace DAO.Clinics
                 transaction.Rollback();
                 Console.WriteLine($"Error adding tour: {ex.Message}");
                 throw;
-            } finally
+            }
+            finally
             {
                 transaction.Dispose();
             }
         }
 
-        public async void UpdateClinics(Clinic clinic, Guid id)
+        public async Task UpdateClinics(Clinic clinic, Guid id)
         {
-            var transaction = _context.Database.BeginTransaction();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
@@ -92,14 +89,15 @@ namespace DAO.Clinics
                 _context.Attach(clinic);
                 _context.Entry(clinic).State = EntityState.Modified;
                 await _context.SaveChangesAsync(id);
-                transaction.Commit();
+                await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
                 Console.WriteLine($"Error updating tour: {ex.Message}");
                 throw;
-            } finally
+            }
+            finally
             {
                 transaction.Dispose();
             }
@@ -124,7 +122,8 @@ namespace DAO.Clinics
                 transaction.Rollback();
                 Console.WriteLine($"Error deleting tour: {ex.Message}");
                 throw;
-            } finally
+            }
+            finally
             {
                 transaction.Dispose();
             }
