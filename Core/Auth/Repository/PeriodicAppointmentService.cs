@@ -5,6 +5,7 @@ using Services.Appoinmets;
 using Core.Services;
 using Core.Helpers;
 using DAO.Data;
+using BusinessObject.Enums;
 namespace Core.Auth.Repository
 
 {
@@ -111,6 +112,11 @@ namespace Core.Auth.Repository
         }
 
         public AppointmentData GetAppointmentForCreateDentalByID(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID)
         {
             throw new NotImplementedException();
         }

@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using BusinessObject.Enums;
 using BusinessObject.Models;
 using DAO.Data;
 using DAO.Requests;
@@ -85,5 +86,7 @@ namespace Services.Appoinmets
         {
             return _AppoinsRepository.GetAppointmentsForUser(userId);
         }
+
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID) => _AppoinsRepository.ChangeStatusAppointment(appointmentID, status, userID);
     }
 }

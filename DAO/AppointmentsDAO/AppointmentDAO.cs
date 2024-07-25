@@ -64,7 +64,7 @@ namespace DAO.AppointmentsDAO
         }
         
 
-        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status)
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID)
         {
             try
             {
