@@ -14,14 +14,12 @@ namespace DAO.ManageDentist
 
         public async Task<IEnumerable<BusinessObject.Models.DentistDetail>> GetAllDentists()
         {
-            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 return await _context.DentistDetails.AsNoTracking().ToListAsync();
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error retrieving all dentists: {ex.Message}");
                 throw;
             }
@@ -29,14 +27,12 @@ namespace DAO.ManageDentist
 
         public async Task<IEnumerable<BusinessObject.Models.DentistDetail>> GetAllDentistsByClinicId(Guid id)
         {
-            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 return await _context.DentistDetails.AsNoTracking().Where(d => d.ClinicId == id).ToListAsync();
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error retrieving all dentists by clinic ID {id}: {ex.Message}");
                 throw;
             }
@@ -44,39 +40,34 @@ namespace DAO.ManageDentist
 
         public async Task<BusinessObject.Models.DentistDetail> GetDentistById(Guid id)
         {
-            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 return await _context.DentistDetails.AsNoTracking().FirstOrDefaultAsync(d => d.DentistId == id);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error retrieving dentist by ID {id}: {ex.Message}");
                 throw;
             }
         }
 
-        public async Task CreateDentist(BusinessObject.Models.DentistDetail dentist)
+        public Task CreateDentist(BusinessObject.Models.DentistDetail dentist, Guid userId)
         {
-            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 _context.DentistDetails.Add(dentist);
-                await _context.SaveChangesAsync();
-                transaction.Commit();
+                _context.SaveChangesAsync(userId);
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error creating dentist: {ex.Message}");
                 throw;
             }
         }
 
-        public async Task UpdateDentist(BusinessObject.Models.DentistDetail dentist)
+        public async Task UpdateDentist(BusinessObject.Models.DentistDetail dentist, Guid userId)
         {
-            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 var existingDentist = await _context.DentistDetails.FirstOrDefaultAsync(d => d.DentistId == dentist.DentistId);
@@ -91,20 +82,17 @@ namespace DAO.ManageDentist
                         property.CurrentValue = _context.Entry(dentist).Property(property.Metadata.Name).CurrentValue;
                     }
                 }
-                await _context.SaveChangesAsync();
-                transaction.Commit();
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error updating dentist: {ex.Message}");
                 throw;
             }
         }
 
-        public async Task DeleteDentist(Guid id)
+        public async Task DeleteDentist(Guid id, Guid userId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var existingDentist = await _context.DentistDetails.AsNoTracking().FirstOrDefaultAsync(d => d.DentistId == id);
@@ -113,12 +101,10 @@ namespace DAO.ManageDentist
                     throw new InvalidOperationException($"Dentist with ID {id} does not exist");
                 }
                 _context.DentistDetails.Remove(existingDentist);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 Console.WriteLine($"Error deleting dentist: {ex.Message}");
                 throw;
             }
@@ -126,14 +112,12 @@ namespace DAO.ManageDentist
 
         public async Task<bool> DentistExists(Guid id)
         {
-            using var transaction = _context.Database.BeginTransaction();
             try
             {
                 return await _context.DentistDetails.AsNoTracking().AnyAsync(d => d.DentistId == id);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error checking if dentist exists: {ex.Message}");
                 throw;
             }

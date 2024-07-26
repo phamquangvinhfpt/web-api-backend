@@ -1,11 +1,11 @@
 ﻿using BusinessObject.Models;
-using Core.Helpers;
-using Core.Services;
-using DAO.Data;
 using DAO.Requests;
 using Repository.Appointments;
 using Services.Appoinmets;
-
+using Core.Services;
+using Core.Helpers;
+using DAO.Data;
+using BusinessObject.Enums;
 namespace Core.Auth.Repository
 
 {
@@ -15,9 +15,9 @@ namespace Core.Auth.Repository
         private IMailService _mailService;
         private readonly ILogger<PeriodicAppointmentService> _logger;
 
-        public PeriodicAppointmentService(IMailService mailService, ILogger<PeriodicAppointmentService> logger, IAppointmentRepository appointmentRepository)
+        public PeriodicAppointmentService(IMailService mailService, ILogger<PeriodicAppointmentService> logger)
         {
-            this.appointmentRepository = appointmentRepository;
+            appointmentRepository = new AppointmentRepository();
             _mailService = mailService;
             _logger = logger;
         }
@@ -57,35 +57,25 @@ namespace Core.Auth.Repository
             throw new NotImplementedException();
         }
 
-        private void SendMailToRemind(AppUser patient, AppUser dentist, DateTime date)
-        {
-            // Kiểm tra nếu patient hoặc dentist là null
-
-            var appointmentDate = date.Date.ToString("dd-MM-yyyy"); // Chỉnh lại để cho phù hợp với ngày tái khám mới
-            var mailContent = new MailRequest
-            {
-                ToEmail = patient.Email,
-                Subject = "Appointment Reminder",
-                Body = $"Dear {patient.FullName}, <br/>" +
-                       $"This is a reminder for your upcoming dental appointment with {dentist.FullName} on {appointmentDate}. <br/>" +
-                       $"Please let us know if you're available or need to reschedule. <br/>" +
-                       $"Looking forward to seeing you.<br/><br/>" +
-                       $"Best regards,<br/>" +
-                       $"{dentist.FullName}"
-            };
-            // Gửi email bằng cách sử dụng dịch vụ gửi mail
-            _mailService.SendEmailAsync(mailContent);
-        }
-
-        public AppointmentData GetAppointmentForCreateDentalByID(Guid id)
+        public List<Appointment> GetByDentistID(Guid dentistID)
         {
             throw new NotImplementedException();
         }
 
-        public Task PeriodicAppointment()
+        public List<Appointment> GetAppointmentsForUser(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Appointment> SearchAppointmentByName(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        async Task IAppoinmentService.PeriodicAppointment()
         {
             //var list lấy hàm Getallstatusandtype ra
-            var list = appointmentRepository.GetAllByStatusAndType(BusinessObject.Enums.AppointmentStatus.Scheduled, BusinessObject.Enums.AppointmentType.Periodic);
+           var list = appointmentRepository.GetAllByStatusAndType(BusinessObject.Enums.AppointmentStatus.Scheduled, BusinessObject.Enums.AppointmentType.Periodic);
             if (list != null)
             {
                 DateTime today = DateTime.Now;
@@ -104,7 +94,36 @@ namespace Core.Auth.Repository
                     }
                 }
             }
-            return Task.CompletedTask;
+        }
+
+        private void SendMailToRemind(AppUser patient, AppUser dentist, DateTime date)
+        {
+            // Kiểm tra nếu patient hoặc dentist là null
+
+            var appointmentDate = date.Date.ToString("dd-MM-yyyy"); // Chỉnh lại để cho phù hợp với ngày tái khám mới
+            var mailContent = new MailRequest
+            {
+                ToEmail = patient.Email,
+                Subject = "Appointment Reminder",
+                Body = $"Dear {patient.FullName}, <br/>" +
+                       $"This is a reminder for your upcoming dental appointment with {dentist.FullName} on {appointmentDate}. <br/>" +
+                       $"Please let us know if you're available or need to reschedule. <br/>" +
+                       $"Looking forward to seeing you.<br/><br/>" +
+                       $"Best regards,<br/>" +
+                       $"{dentist.FullName}"
+            };
+            // Gửi email bằng cách sử dụng dịch vụ gửi mail
+             _mailService.SendEmailAsync(mailContent);
+        }
+
+        public AppointmentData GetAppointmentForCreateDentalByID(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID)
+        {
+            throw new NotImplementedException();
         }
     }
 }

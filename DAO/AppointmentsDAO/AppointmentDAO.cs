@@ -17,6 +17,30 @@ namespace DAO.AppointmentsDAO
     {
         private static AppointmentDAO instance = null;
         private AppDbContext _context = null;
+        private bool IsValidAppointmentDate(DateTime date)
+        {
+            return date.Date >= DateTime.Now.Date;
+        }
+
+        private bool IsTimeSlotAvailable(Guid dentistId, Guid clinicId, DateTime date, TimeSpan timeSlot)
+        {
+            return !_context.Appointments.Any(a =>
+                a.DentistID == dentistId &&
+                a.ClinicID == clinicId &&
+                a.Date.Date == date.Date &&
+                a.TimeSlot == timeSlot &&
+                a.Status != AppointmentStatus.Cancelled);
+        }
+        private bool IsTimeSlotAvailableForUpdate(Guid appointmentId, Guid dentistId, Guid clinicId, DateTime date, TimeSpan timeSlot)
+        {
+            return !_context.Appointments.Any(a =>
+                a.Id != appointmentId &&
+                a.DentistID == dentistId &&
+                a.ClinicID == clinicId &&
+                a.Date.Date == date.Date &&
+                a.TimeSlot == timeSlot &&
+                a.Status != AppointmentStatus.Cancelled);
+        }
 
         public AppointmentDAO()
         {
@@ -36,7 +60,15 @@ namespace DAO.AppointmentsDAO
         // kham 1 lan
         public Appointment CreateAppointment(AppointmentRequest request)
         {
+            if (!IsValidAppointmentDate(request.Date))
+            {
+                throw new Exception("Invalid appointment date. Please choose a future date.");
+            }
 
+            if (!IsTimeSlotAvailable(request.DentistID, request.ClinicID, request.Date, request.TimeSlot))
+            {
+                throw new Exception("The selected time slot is not available. Please choose another time.");
+            }
             var appointment = new Appointment
             {
                 PatientID = request.PatientID,
@@ -64,7 +96,7 @@ namespace DAO.AppointmentsDAO
         }
         
 
-        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status)
+        public void ChangeStatusAppointment(Guid appointmentID, AppointmentStatus status, Guid userID)
         {
             try
             {
@@ -102,7 +134,34 @@ namespace DAO.AppointmentsDAO
         {
             try
             {
-                _context.Appointments.Update(appointment);
+                var existingAppointment = _context.Appointments.FirstOrDefault(a => a.Id == appointment.Id);
+
+                if (existingAppointment == null)
+                {
+                    throw new Exception("Appointment not found.");
+                }
+
+                // Kiểm tra tính hợp lệ của ngày
+                if (!IsValidAppointmentDate(appointment.Date))
+                {
+                    throw new Exception("Invalid appointment date. Please choose a future date.");
+                }
+
+                // Kiểm tra tính khả dụng của thời gian slot khi cập nhật
+                if (!IsTimeSlotAvailableForUpdate(appointment.Id, appointment.DentistID, appointment.ClinicID, appointment.Date, appointment.TimeSlot))
+                {
+                    throw new Exception("The selected time slot is not available. Please choose another time.");
+                }
+
+                // Cập nhật các thuộc tính của cuộc hẹn
+                existingAppointment.PatientID = appointment.PatientID;
+                existingAppointment.DentistID = appointment.DentistID;
+                existingAppointment.ClinicID = appointment.ClinicID;
+                existingAppointment.Date = appointment.Date;
+                existingAppointment.TimeSlot = appointment.TimeSlot;
+                existingAppointment.UpdatedAt = DateTime.Now;
+
+                _context.Appointments.Update(existingAppointment);
                 _context.SaveChanges();
             }
             catch (Exception ex)
@@ -110,6 +169,8 @@ namespace DAO.AppointmentsDAO
                 throw new Exception(ex.Message);
             }
         }
+
+
         // get all appointments
         public List<Appointment> GetAllAppointments()
         {
@@ -137,6 +198,15 @@ namespace DAO.AppointmentsDAO
         // create appointment dinh ki cho benh nhan
         public Appointment CreateAppointmentForPeriodic(AppointmentRequest request)
         {
+            if (!IsValidAppointmentDate(request.Date))
+            {
+                throw new Exception("Invalid appointment date. Please choose a future date.");
+            }
+
+            if (!IsTimeSlotAvailable(request.DentistID, request.ClinicID, request.Date, request.TimeSlot))
+            {
+                throw new Exception("The selected time slot is not available. Please choose another time.");
+            }
             var appointment = new Appointment
             {
                 PatientID = request.PatientID,
@@ -183,6 +253,33 @@ namespace DAO.AppointmentsDAO
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        // getbyDentistID
+        public List<Appointment> GetByDentistID(Guid dentistID)
+        {
+            return _context.Appointments.Include("Patient").Include("Dentist").Include("Clinic").Where(p => p.DentistID == dentistID).ToList();
+        }
+
+        public List<Appointment> GetAppointmentsForUser(Guid userId)
+        {
+            return _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Dentist)
+                .Include(a => a.Clinic)
+                .Where(a => a.PatientID == userId || a.DentistID == userId)
+                .ToList();
+        }
+
+        //search appointment by name
+        public List<Appointment> SearchAppointmentByName(string name)
+        {
+            return _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Dentist)
+                .Include(a => a.Clinic)
+                .Where(a => a.Patient.FullName.Contains(name) || a.Dentist.FullName.Contains(name))
+                .ToList();
         }
 
     }

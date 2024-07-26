@@ -1,5 +1,5 @@
-using System.Collections.ObjectModel;
 using Core.Enums;
+using System.Collections.ObjectModel;
 
 namespace Core.Auth.Permissions
 {
@@ -121,6 +121,7 @@ namespace Core.Auth.Permissions
             // APPOINTMENTS
             new("View Appointments", Action.View, Resource.Appointments),
             new("Create Appointments", Action.Create, Resource.Appointments, Roles.Dentist),
+            new("Create Appointments", Action.Create, Resource.Appointments, Roles.Customer),
             new("Update Appointments", Action.Update, Resource.Appointments, Roles.Dentist),
             new("Delete Appointments", Action.Delete, Resource.Appointments, Roles.Dentist),
 

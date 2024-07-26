@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BusinessObject.Data;
 using BusinessObject.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 
 namespace DAO.Clinics
 {
     public class ClinicsDAO
     {
-        private readonly AppDbContext _context = null;
+        private readonly AppDbContext _context;
 
         public ClinicsDAO(AppDbContext context)
         {
@@ -33,10 +28,10 @@ namespace DAO.Clinics
 
         public Clinic GetClinicsById(Guid Id)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 return _context.Clinics.Include("ClinicDetails").FirstOrDefault(c => c.Id == Id);
+
             }
             catch (Exception ex)
             {
@@ -45,9 +40,8 @@ namespace DAO.Clinics
             }
         }
 
-        public async void AddClinics(Clinic clinic, Guid userId)
+        public void AddClinics(Clinic clinic, Guid userId)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
@@ -56,42 +50,39 @@ namespace DAO.Clinics
                     throw new InvalidOperationException($"Clinic with ID {clinic.Id} already exists");
                 }
                 _context.Clinics.Add(clinic);
-                await _context.SaveChangesAsync(userId);
-                transaction.Commit();
+                _context.SaveChangesAsync(userId);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error adding tour: {ex.Message}");
                 throw;
             }
         }
 
-        public async void UpdateClinics(Clinic clinic)
+        public void UpdateClinics(Clinic clinic, Guid id)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var existingClinics = _context.Clinics.FirstOrDefault(c => c.Id == clinic.Id);
                 if (existingClinics == null)
                 {
-                    throw new InvalidOperationException($"Clinic with ID {clinic.Id} does not exist");
+                    throw new InvalidOperationException($"Clinic with ID {id} does not exist");
                 }
-                _context.Clinics.Update(clinic);
-                await _context.SaveChangesAsync(true);
-                transaction.Commit();
+                existingClinics.Name = clinic.Name;
+                existingClinics.Address = clinic.Address;
+                existingClinics.Verified = clinic.Verified;
+                _context.Clinics.Update(existingClinics);
+                _context.SaveChangesAsync(id);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error updating tour: {ex.Message}");
                 throw;
             }
         }
 
-        public async void DeleteClinics(Guid Id)
+        public void DeleteClinics(Guid Id)
         {
-            var transaction = _context.Database.BeginTransaction();
             try
             {
                 var clinic = _context.Clinics.FirstOrDefault(c => c.Id == Id);
@@ -100,12 +91,10 @@ namespace DAO.Clinics
                     throw new InvalidOperationException($"Clinic with ID {Id} does not exist");
                 }
                 _context.Clinics.Remove(clinic);
-                await _context.SaveChangesAsync(true);
-                transaction.Commit();
+                _context.SaveChangesAsync(true);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 Console.WriteLine($"Error deleting tour: {ex.Message}");
                 throw;
             }

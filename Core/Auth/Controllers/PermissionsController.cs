@@ -37,7 +37,7 @@ namespace Core.Auth.Controllers
             }
             var userClaims = await _userManager.GetClaimsAsync(user);
 
-            if (userClaims.Any(x => x.Type == CustomClaimTypes.Permission && x.Value == $"{Resource}.{Action}"))
+            if (userClaims.Any(x => x.Type == CustomClaimTypes.Permission && x.Value == $"Permissions.{Resource}.{Action}"))
             {
                 return BadRequest($"User '{user.FullName}' already has the permission '{Action}' on '{Resource}'.");
             }

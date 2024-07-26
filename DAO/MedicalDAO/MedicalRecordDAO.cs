@@ -1,19 +1,13 @@
 ﻿using BusinessObject.Data;
 using BusinessObject.Models;
-using DAO.RecordDAO;
 using DAO.Requests;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAO.MedicalDAO
 {
     public class MedicalRecordDAO
     {
-        private static MedicalRecordDAO instance = null;
-        private AppDbContext _context = null;
+        private static MedicalRecordDAO? instance = null;
+        private AppDbContext? _context = null;
 
         public MedicalRecordDAO()
         {
@@ -31,7 +25,7 @@ namespace DAO.MedicalDAO
             }
         }
 
-        public async void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID, Guid userID)
+        public void CreateMedicalRecord(MedicalRecordRequest request, Guid appoinmentid, Guid dentalID, Guid userID)
         {
             var mdcRecord = new MedicalRecord
             {
@@ -46,13 +40,13 @@ namespace DAO.MedicalDAO
             try
             {
                 _context.MedicalRecords.Add(mdcRecord);
-                await _context.SaveChangesAsync(userID);
+                _context.SaveChangesAsync(userID);
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
-            
+
         }
         public MedicalRecord GetMedicalRecordByDentalID(Guid dentalID)
         {

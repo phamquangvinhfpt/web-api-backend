@@ -14,7 +14,7 @@ namespace Repository.Clinics
         public Clinic GetClinicsById(Guid Id);
         public void AddClinics(Clinic clinic, Guid userId);
         
-        public void UpdateClinics(Clinic clinic);
+        public void UpdateClinics(Clinic clinic, Guid id);
         
         public void DeleteClinics(Guid Id);
     }

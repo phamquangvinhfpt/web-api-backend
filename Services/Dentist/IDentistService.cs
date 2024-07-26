@@ -7,9 +7,9 @@ namespace Services.Dentist
         Task<IEnumerable<DentistDetailDTO>> GetAllDentists();
         Task<IEnumerable<DentistDetailDTO>> GetAllDentistsByClinicId(Guid id);
         Task<DentistDetailDTO> GetDentistById(Guid id);
-        Task CreateDentist(DentistDetailDTO dentist);
-        Task UpdateDentist(DentistDetailDTO dentist);
-        Task DeleteDentist(Guid id);
+        Task CreateDentist(DentistDetailDTO dentist, Guid userId);
+        Task UpdateDentist(DentistDetailDTO dentist, Guid userId);
+        Task DeleteDentist(Guid id, Guid userId);
         Task<bool> DentistExists(Guid id);
     }
 }

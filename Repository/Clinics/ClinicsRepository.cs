@@ -20,6 +20,6 @@ namespace Repository.Clinics
 
         public Clinic GetClinicsById(Guid id) => _clinicsDAO.GetClinicsById(id);
 
-        public void UpdateClinics(Clinic clinic) => _clinicsDAO.UpdateClinics(clinic);
+        public void UpdateClinics(Clinic clinic, Guid id) => _clinicsDAO.UpdateClinics(clinic, id);
     }
 }

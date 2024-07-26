@@ -56,21 +56,21 @@ namespace Services.Dentist
             return _mapper.Map<DentistDetailDTO>(dentist);
         }
 
-        public async Task CreateDentist(DentistDetailDTO dentist)
+        public async Task CreateDentist(DentistDetailDTO dentist, Guid userId)
         {
             var dentistEntity = _mapper.Map<DentistDetail>(dentist);
-            await _dentistRepository.CreateDentist(dentistEntity);
+            await _dentistRepository.CreateDentist(dentistEntity, userId);
         }
 
-        public async Task UpdateDentist(DentistDetailDTO dentist)
+        public async Task UpdateDentist(DentistDetailDTO dentist, Guid userId)
         {
             var dentistEntity = _mapper.Map<DentistDetail>(dentist);
-            await _dentistRepository.UpdateDentist(dentistEntity);
+            await _dentistRepository.UpdateDentist(dentistEntity, userId);
         }
 
-        public async Task DeleteDentist(Guid id)
+        public async Task DeleteDentist(Guid id, Guid userId)
         {
-            await _dentistRepository.DeleteDentist(id);
+            await _dentistRepository.DeleteDentist(id, userId);
         }
 
         public async Task<bool> DentistExists(Guid id)

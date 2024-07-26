@@ -11,14 +11,14 @@ namespace Repository
         {
             _dentistDAO = dentistDAO;
         }
-        public Task CreateDentist(DentistDetail dentist)
+        public Task CreateDentist(DentistDetail dentist, Guid userId)
         {
-            return _dentistDAO.CreateDentist(dentist);
+            return _dentistDAO.CreateDentist(dentist, userId);
         }
 
-        public Task DeleteDentist(Guid id)
+        public Task DeleteDentist(Guid id, Guid userId)
         {
-            return _dentistDAO.DeleteDentist(id);
+            return _dentistDAO.DeleteDentist(id, userId);
         }
 
         public Task<bool> DentistExists(Guid id)
@@ -41,9 +41,9 @@ namespace Repository
             return _dentistDAO.GetDentistById(id);
         }
 
-        public Task UpdateDentist(DentistDetail dentist)
+        public Task UpdateDentist(DentistDetail dentist, Guid userId)
         {
-            return _dentistDAO.UpdateDentist(dentist);
+            return _dentistDAO.UpdateDentist(dentist, userId);
         }
     }
 }
