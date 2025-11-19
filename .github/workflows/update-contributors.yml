@@ -1,0 +1,36 @@
+name: Update Contributors
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1" # 09:00 ICT thứ 2
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate contributors section
+        uses: akhilmhdh/contributors-readme-action@v2.3.11
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          readme_path: README.md
+          columns_per_row: 6
+          image_size: 90
+
+      - name: Commit changes
+        run: |
+          if [[ -n "$(git status --porcelain README.md)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -am "docs: update contributors list"
+            git push
+          else
+            echo "No README updates"
+          fi
+
