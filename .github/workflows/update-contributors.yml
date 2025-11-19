@@ -17,7 +17,7 @@ jobs:
       - name: Generate contributors section
         uses: akhilmhdh/contributors-readme-action@v2.3.11
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CONTRIB_TOKEN }}
         with:
           readme_path: README.md
           columns_per_row: 6
